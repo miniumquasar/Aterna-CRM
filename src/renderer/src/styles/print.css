@@ -1,0 +1,100 @@
+/*
+ * Paper and PDF. theme/apply.ts gives print the palette's Day tokens with
+ * opaque surfaces and the deepest accent step as the brand ink, whatever is
+ * on screen; this sheet drops the glass, the field and the shell around the
+ * screen, and lets the screen run over as many pages as it needs, so a
+ * client pack prints legibly on a mono laser.
+ */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: rgb(var(--text)) !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .app-backdrop,
+  .app-grain,
+  .specular,
+  .titlebar,
+  [data-print='hide'],
+  nav[aria-label='Main'],
+  [role='tooltip'],
+  [data-inert-exempt] {
+    display: none !important;
+  }
+
+  /* The shell stops scrolling: the screen flows onto pages. */
+  [data-app-shell],
+  [data-app-shell] > *,
+  [data-print-flow] {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .glass,
+  .glass-panel,
+  .glass-raised,
+  .glass-sunken,
+  .glass-header,
+  .field-control,
+  .btn-secondary {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+  .glass-panel[data-print-flow] {
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .glass,
+  .glass-raised {
+    background-color: rgb(var(--surface)) !important;
+    border-color: rgb(var(--border-strong) / var(--border-strong-alpha)) !important;
+    break-inside: avoid;
+  }
+  .glass .glass {
+    background-color: rgb(var(--surface-raised)) !important;
+  }
+
+  table {
+    break-inside: auto;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  .glass-header {
+    position: static !important;
+    background: transparent !important;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

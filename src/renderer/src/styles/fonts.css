@@ -1,0 +1,23 @@
+/*
+ * The two bundled typefaces (assets/fonts, SIL Open Font License; see
+ * SOURCES.txt there). Nothing loads from the network.
+ *
+ *   Inter (variable, optical sizes 14–32)  every piece of UI and every figure
+ *   Source Serif 4 (variable, optical sizes 8–60)  page titles, client file
+ *     headers and empty-state headlines only (the `font-serif` class)
+ */
+@font-face {
+  font-family: 'InterVariable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/InterVariable-latin.woff2') format('woff2-variations'), url('../assets/fonts/InterVariable-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('../assets/fonts/SourceSerif4Variable-latin.woff2') format('woff2-variations'), url('../assets/fonts/SourceSerif4Variable-latin.woff2') format('woff2');
+}

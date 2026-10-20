@@ -1,0 +1,21 @@
+Bundled fonts (both SIL Open Font License 1.1; the licence texts are beside them)
+
+InterVariable-latin.woff2
+  Inter 4.1 variable (axes: opsz 14-32, wght 100-900), roman, by The Inter Project Authors.
+  From the npm package inter-ui 4.1.1 (variable/InterVariable.woff2), subset with fontTools
+  pyftsubset to Latin and Latin-1, the general punctuation block, the euro, minus, arrows and
+  the key symbols used for shortcuts, keeping every OpenType feature:
+    --unicodes=U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,
+               U+0329,U+2000-206F,U+20AC,U+2122,U+2190-2199,U+21B5,U+21E7,U+2212,U+2215,U+2318,
+               U+2325,U+2713,U+2715,U+FEFF,U+FFFD
+    --layout-features='*' --flavor=woff2
+  The Google Fonts build (@fontsource-variable/inter) drops the zero, ss02 and cv features,
+  which the app uses for slashed zeros in references and for telling I, l and 1 apart.
+  Licence: Inter-OFL.txt
+
+SourceSerif4Variable-latin.woff2
+  Source Serif 4 variable (axes: wght 200-900, opsz 8-60), roman, by Adobe.
+  The Latin subset from the npm package @fontsource-variable/source-serif-4 5.3.1
+  (files/source-serif-4-latin-opsz-normal.woff2), unchanged.
+  Used only for page titles, client file headers and empty-state headlines.
+  Licence: SourceSerif4-OFL.txt (Reserved Font Name "Source")
