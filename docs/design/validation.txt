@@ -1,0 +1,1027 @@
+AETERNA CRM - palette validation
+source: palettes.json  palettes: 8  effect levels: full, balanced, lite, solid
+dataviz skill validator: /tmp/claude-0/bundled-skills/2.1.304/7d0a4b173847805ef92425bddc13ea53/dataviz/scripts/validate_palette.py
+
+SUMMARY (checks passed / total, per palette and mode)
+palette      mode           text       accent     semantic        chart  chart-skill       scales       schema   verdict
+------------------------------------------------------------------------------------------------------------------------
+burgundy     day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+burgundy     night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+sapphire     day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+sapphire     night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+emerald      day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+emerald      night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+graphite     day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+graphite     night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+indigo       day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+indigo       night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+onyx         day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+onyx         night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+aubergine    day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+aubergine    night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+petrol       day             4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+petrol       night           4/4        13/13          4/4        13/13          5/5        10/10        15/15   PASS
+
+KEY RESULTS (worst case across Full / Balanced / Lite / Reduce transparency and every layer)
+palette      mode      text   muted   faint  fg/acc  fg/gTo   accUI   focus    acc2    succ    warn    dang    info  chart>=  dE norm  protan  deutan  tritan
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+burgundy     day      13.42    5.24    3.31    9.09    5.17    7.40    4.81    3.31    4.68    4.66    4.65    4.65     3.17     37.2    20.7    21.3    21.0
+burgundy     night     9.74    5.20    3.30    4.65    4.65    3.25    4.80    5.67    4.67    4.66    4.65    4.67     3.16     38.0    18.9    21.0    17.9
+sapphire     day      13.37    5.22    3.30    5.17    5.17    4.15    4.84    3.32    4.65    4.65    4.68    4.67     3.16     38.8    19.1    20.2    19.1
+sapphire     night     9.23    5.22    3.32    4.69    4.69    3.01    4.83    5.82    4.68    4.67    4.66    4.66     3.16     40.6    20.3    21.4    20.8
+emerald      day      13.28    5.21    3.30    5.48    4.65    4.51    4.83    3.31    4.66    4.66    4.65    4.66     3.16     29.1    20.3    17.6    22.4
+emerald      night     9.25    5.20    3.30    4.65    4.65    3.03    4.81    5.90    4.65    4.67    4.66    4.65     3.17     28.7    16.4    18.4    17.9
+graphite     day      13.31    5.21    3.32    5.18    5.18    4.33    4.80    3.32    4.68    4.66    4.65    4.67     3.15     30.3    17.5    22.0    25.2
+graphite     night     9.14    5.20    3.32    4.67    4.67    3.04    4.81    7.19    4.67    4.68    4.66    4.65     3.19     30.2    17.7    20.7    21.0
+indigo       day      13.08    5.21    3.31    6.29    4.62    4.96    4.83    3.31    4.67    4.66    4.66    4.65     3.17     45.6    25.2    21.3    33.8
+indigo       night     9.12    5.20    3.30    4.69    4.69    3.01    4.81    6.28    4.65    4.66    4.66    4.65     3.16     43.6    19.4    18.5    31.2
+onyx         day      14.28    5.26    3.32    5.65    4.60    4.82    4.81    3.31    4.71    4.66    4.68    4.70     3.16     34.7    26.7    23.9    37.9
+onyx         night     7.75    5.20    3.30    9.00   11.81    7.45    4.84    8.14    4.67    4.67    4.65    4.65     3.16     30.3    18.7    21.7    35.3
+aubergine    day      13.17    5.21    3.32    8.55    4.60    6.84    4.80    3.32    4.69    4.66    4.68    4.67     3.17     34.2    17.5    17.7    22.6
+aubergine    night     9.67    5.22    3.33    4.66    4.66    3.28    4.82    6.70    4.65    4.66    4.67    4.67     3.18     35.5    17.9    17.3    18.8
+petrol       day      13.41    5.26    3.32    7.07    4.63    5.83    4.80    3.31    4.69    4.65    4.66    4.66     3.16     33.5    17.1    15.9    15.9
+petrol       night     9.52    5.21    3.31    4.70    4.70    3.12    4.84    9.67    4.67    4.65    4.66    4.65     3.16     33.1    16.0    15.8    15.9
+Thresholds: text 7 (floor 4.5) | muted 4.5 | faint 3 | accentFg 4.5 | accent UI 3 | focus 4.5 | accent2 3 | semantic text 4.5 | chart 3 | adjacent dE2000 15 in every vision
+
+REDUCE TRANSPARENCY - opaque equivalents (layer flattened over backdropVia)
+palette      mode     surface    raised    sunken  selected
+burgundy     day      #f7f9fc   #fdfdfe   #ecedf2   #efe6ec
+burgundy     night    #260e1a   #311925   #1c0a14   #491728
+sapphire     day      #f7f9fd   #fdfdfe   #ebeef4   #e6edfc
+sapphire     night    #0e1b3e   #192548   #0a1430   #162b61
+emerald      day      #f8fbfa   #fdfefd   #ebf0ee   #e5f1ed
+emerald      night    #08211d   #122c28   #051916   #073529
+graphite     day      #fafafa   #fefefe   #efeeee   #f6ebe7
+graphite     night    #211f1f   #2d2a29   #171616   #422919
+indigo       day      #f9f9fd   #fdfdff   #ededf4   #ebebfb
+indigo       night    #161636   #212040   #10102a   #25255a
+onyx         day      #fbfbfa   #fefefe   #f1f0ee   #f2efe7
+onyx         night    #1a1815   #262320   #12100f   #3f3726
+aubergine    day      #faf9fb   #fefdfe   #efecf0   #f0e9ef
+aubergine    night    #240f26   #2e1a31   #1a0b1c   #401c3c
+petrol       day      #f8fafb   #fdfefe   #ebeff0   #e5eef0
+petrol       night    #091f27   #142a32   #06171d   #07323d
+
+FIDELITY TO THE BRIEF - Burgundy & Slate tokens vs colours sampled from the screenshots (dE2000)
+  night:
+    backdropFrom #2b0a16 vs #2b0a15: 0.5
+    backdropVia #110a11 vs #0d0a10: 2.0
+    backdropTo #090a10 vs #07060b: 1.1
+    text #fbeef4 vs #fff4ff: 2.5
+    textMuted #c2acbf vs #bba6b9: 1.8
+    textFaint #99879e vs #7c687f: 11.8
+    accent #d3395d vs #ac113f: 11.1
+    accentGradientFrom #9a1438 vs #9e1439: 0.8
+    accentGradientTo #d3395d vs #d16472: 8.6
+  day:
+    backdropFrom #f3dfe8 vs #f1dfe7: 0.8
+    backdropVia #eceff7 vs #eceff7: 0.0
+    backdropTo #d9deec vs #dadeed: 0.7
+    text #120f1a vs #080b1a: 3.0
+    textMuted #5e525d vs #5e535d: 0.7
+    textFaint #727382 vs #838594: 6.9
+    accent #8f1237 vs #91143a: 0.8
+    accentGradientFrom #6f0f2c vs #710f2c: 0.5
+    accentGradientTo #b54959 vs #b54959: 0.0
+  (accentGradientTo moved deliberately: the brief's sheen end gives white text only 3.64:1 in Night)
+
+DETAIL
+== burgundy - Burgundy & Slate (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 1.3  (<= 25)  chartDiverging[2] #8db6e0 / #456a91
+  [PASS] day   text        text                                            13.42  (>= 4.5)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.42  (>= 7.0)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        textMuted                                        5.24  (>= 4.5)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        textFaint                                        3.31  (>= 3.0)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   accent      accentFg on accent                               9.09  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                         10.90  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                        12.85  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                  11.79  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     5.17  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  7.40  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.81  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.81  (>= 4.5)  full: surface over glowB over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.31  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         63.9  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         35.0  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          19.1  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            40.5  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.68  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowB over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.65  (>= 4.5)  full: dangerSoft on surface over glowB over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.65  (>= 4.5)  full: infoSoft on surface over glowB over backdropTo
+  [PASS] day   chart       chart[1] #a5033c vs surface                      6.38  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[2] #4685c2 vs surface                      3.17  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[3] #46671b vs surface                      5.32  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[4] #8a4385 vs surface                      5.31  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[5] #099272 vs surface                      3.19  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[6] #8b6202 vs surface                      4.45  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[7] #767ac9 vs surface                      3.17  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[8] #c8643a vs surface                      3.20  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           37.2  (>= 15.0)  worst 5-6 #099272/#8b6202
+  [PASS] day   chart       adjacent dE2000 protan                           20.7  (>= 15.0)  worst 5-6 #099272/#8b6202
+  [PASS] day   chart       adjacent dE2000 deutan                           21.3  (>= 15.0)  worst 5-6 #099272/#8b6202
+  [PASS] day   chart       adjacent dE2000 tritan                           21.0  (>= 15.0)  worst 2-3 #4685c2/#46671b
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.461  (>= 0.43)  L range 0.461-0.615
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.108  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            17.0  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                      11.0  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #e9ecf4; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.72 0.61 0.51 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.102  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #d18e98; full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.007  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.33  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.36  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             26.1  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       21.1  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.59 0.76 0.90 0.78 0.61
+  [PASS] night text        text                                             9.74  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.74  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.20  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.30  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.65  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.57  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         5.98  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   8.30  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.65  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.25  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.80  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.80  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    5.67  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         69.8  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         42.4  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          23.6  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            48.3  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.67  (>= 4.5)  lite: successSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  lite: warningSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.65  (>= 4.5)  lite: dangerSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.67  (>= 4.5)  lite: infoSoft on raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[1] #e34a6a vs surface                      3.49  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #5796d5 vs surface                      4.31  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #63853b vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #bb70b4 vs surface                      3.90  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #0d8b6d vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #bc891b vs surface                      4.31  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #7074c3 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #c35e35 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           38.0  (>= 15.0)  worst 5-6 #0d8b6d/#bc891b
+  [PASS] night chart       adjacent dE2000 protan                           18.9  (>= 15.0)  worst 5-6 #0d8b6d/#bc891b
+  [PASS] night chart       adjacent dE2000 deutan                           21.0  (>= 15.0)  worst 4-5 #bb70b4/#0d8b6d
+  [PASS] night chart       adjacent dE2000 tritan                           17.9  (>= 15.0)  worst 2-3 #5796d5/#63853b
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.568  (>= 0.48)  L range 0.568-0.663
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.109  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            19.5  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                      10.4  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #511b2e; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.70 0.61 0.51
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.097  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #a63a52; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.007  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.43  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.41  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             26.0  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       21.1  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.66 0.51 0.40 0.53 0.68
+
+== sapphire - Sapphire (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 1.0  (<= 25)  chartDiverging[2] #8db1f4 / #4b6daa
+  [PASS] day   text        text                                            13.37  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.37  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.22  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.30  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               5.17  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          6.31  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                         7.69  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                  10.36  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     5.17  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  4.15  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.84  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.84  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.32  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         46.4  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         53.5  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          44.5  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            27.4  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.65  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.65  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.68  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.67  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #316de2 vs surface                      3.82  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #8e5f03 vs surface                      4.45  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #069171 vs surface                      3.18  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #a6501a vs surface                      4.45  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #7858ab vs surface                      4.46  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #758830 vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #2388bd vs surface                      3.16  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #c46076 vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           38.8  (>= 15.0)  worst 2-3 #8e5f03/#069171
+  [PASS] day   chart       adjacent dE2000 protan                           19.1  (>= 15.0)  worst 7-8 #2388bd/#c46076
+  [PASS] day   chart       adjacent dE2000 deutan                           20.2  (>= 15.0)  worst 3-4 #069171/#a6501a
+  [PASS] day   chart       adjacent dE2000 tritan                           19.1  (>= 15.0)  worst 5-6 #7858ab/#758830
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.523  (>= 0.43)  L range 0.523-0.615
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.109  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            17.6  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                      10.1  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #e2ecf8; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.70 0.60 0.50 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.099  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                0  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #819fd6; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.34  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             44.9  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       38.5  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.59 0.76 0.90 0.77 0.60
+  [PASS] night text        text                                             9.23  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.23  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.22  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.32  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.69  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.55  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         6.07  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   6.70  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.69  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.01  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.83  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.83  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    5.82  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         51.0  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         58.6  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          44.4  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            35.9  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.68  (>= 4.5)  lite: successSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.67  (>= 4.5)  lite: warningSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  lite: dangerSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.66  (>= 4.5)  lite: infoSoft on raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[1] #4683fa vs surface                      3.49  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #ac761a vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #0bac87 vs surface                      4.30  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #cc621f vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #946cd2 vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #768831 vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #2f90c6 vs surface                      3.51  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #c66177 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           40.6  (>= 15.0)  worst 2-3 #ac761a/#0bac87
+  [PASS] night chart       adjacent dE2000 protan                           20.3  (>= 15.0)  worst 7-8 #2f90c6/#c66177
+  [PASS] night chart       adjacent dE2000 deutan                           21.4  (>= 15.0)  worst 2-3 #ac761a/#0bac87
+  [PASS] night chart       adjacent dE2000 tritan                           20.8  (>= 15.0)  worst 5-6 #946cd2/#768831
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.594  (>= 0.48)  L range 0.594-0.663
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.114  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            19.3  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                      11.4  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #1e3164; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.71 0.61 0.51
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.095  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #3362bc; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.35  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.38  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             44.7  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       38.5  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.69 0.54 0.40 0.55 0.70
+
+== emerald - Emerald & Gold (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 1.0  (<= 25)  chartDiverging[2] #72bec1 / #29787c
+  [PASS] day   text        text                                            13.28  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.28  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.21  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.30  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               5.48  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          6.71  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                         8.14  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                   7.68  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     4.65  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  4.51  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.83  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.83  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.31  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         16.1  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         39.4  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          61.7  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            32.4  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.66  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.65  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.66  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #0b865c vs surface                      3.77  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #8a3e01 vs surface                      6.23  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #a66db3 vs surface                      3.16  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #7a892f vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #5383c9 vs surface                      3.16  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #a07d0f vs surface                      3.18  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #786bba vs surface                      3.75  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #c8626c vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           29.1  (>= 15.0)  worst 7-8 #786bba/#c8626c
+  [PASS] day   chart       adjacent dE2000 protan                           20.3  (>= 15.0)  worst 1-2 #0b865c/#8a3e01
+  [PASS] day   chart       adjacent dE2000 deutan                           17.6  (>= 15.0)  worst 1-2 #0b865c/#8a3e01
+  [PASS] day   chart       adjacent dE2000 tritan                           22.4  (>= 15.0)  worst 4-5 #7a892f/#5383c9
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.457  (>= 0.43)  L range 0.457-0.621
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.116  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            17.6  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                      10.7  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #e1f0ee; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.70 0.60 0.50 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.097  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #75ac90; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.009  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             25.2  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       18.3  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.58 0.75 0.90 0.78 0.61
+  [PASS] night text        text                                             9.25  (>= 4.5)  lite: accentSoft on raised on surface over glowB over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.25  (>= 7.0)  lite: accentSoft on raised on surface over glowB over backdropFrom
+  [PASS] night text        textMuted                                        5.20  (>= 4.5)  lite: accentSoft on raised on surface over glowB over backdropFrom
+  [PASS] night text        textFaint                                        3.30  (>= 3.0)  lite: accentSoft on raised on surface over glowB over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.65  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.58  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         6.04  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   7.68  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.65  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.03  (>= 3.0)  full: surface over glowB over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.81  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.81  (>= 4.5)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    5.90  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         25.3  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         46.5  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          59.4  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            40.8  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.65  (>= 4.5)  lite: successSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.67  (>= 4.5)  lite: warningSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  lite: dangerSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.65  (>= 4.5)  lite: infoSoft on raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[1] #2c9b6f vs surface                      3.50  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[2] #cc651a vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[3] #a66db3 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[4] #7b8930 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[5] #5483ca vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[6] #a17d11 vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[7] #8577c8 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[8] #c9626d vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           28.7  (>= 15.0)  worst 7-8 #8577c8/#c9626d
+  [PASS] night chart       adjacent dE2000 protan                           16.4  (>= 15.0)  worst 1-2 #2c9b6f/#cc651a
+  [PASS] night chart       adjacent dE2000 deutan                           18.4  (>= 15.0)  worst 1-2 #2c9b6f/#cc651a
+  [PASS] night chart       adjacent dE2000 tritan                           17.9  (>= 15.0)  worst 2-3 #cc651a/#a66db3
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.600  (>= 0.48)  L range 0.600-0.622
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.114  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            17.0  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                       9.8  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #1d3a30; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.70 0.60 0.50
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.100  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #0b7550; lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.007  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.34  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.38  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             24.6  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       19.6  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.67 0.53 0.40 0.55 0.70
+
+== graphite - Graphite & Copper (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 0.8  (<= 25)  chartDiverging[2] #8ab8e0 / #477397
+  [PASS] day   text        text                                            13.31  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.31  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.21  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.32  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               5.18  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          6.23  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                         7.55  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                   8.14  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     5.18  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  4.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.80  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.80  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.32  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         54.3  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         27.1  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          15.2  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            46.2  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.68  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.65  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.67  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #c75204 vs surface                      3.79  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #3e89c3 vs surface                      3.15  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #546801 vs surface                      5.23  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #81377c vs surface                      6.34  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #008769 vs surface                      3.76  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #a57d0d vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #8579c6 vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #c56866 vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           30.3  (>= 15.0)  worst 7-8 #8579c6/#c56866
+  [PASS] day   chart       adjacent dE2000 protan                           17.5  (>= 15.0)  worst 5-6 #008769/#a57d0d
+  [PASS] day   chart       adjacent dE2000 deutan                           22.0  (>= 15.0)  worst 4-5 #81377c/#008769
+  [PASS] day   chart       adjacent dE2000 tritan                           25.2  (>= 15.0)  worst 2-3 #3e89c3/#546801
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.463  (>= 0.43)  L range 0.463-0.624
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.110  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            16.7  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                       9.0  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #f1eeee; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.72 0.62 0.51 0.41 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.104  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.12  (>= 2.0)  #ce967d; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.009  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.35  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             43.2  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       34.4  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.59 0.76 0.90 0.78 0.61
+  [PASS] night text        text                                             9.14  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.14  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.20  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.32  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.67  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.55  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         5.97  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   7.31  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.67  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.04  (>= 3.0)  full: surface over glowB over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.81  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.81  (>= 4.5)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    7.19  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         55.3  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         33.0  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          29.2  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            52.0  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.67  (>= 4.5)  lite: successSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.68  (>= 4.5)  lite: warningSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  lite: dangerSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.65  (>= 4.5)  lite: infoSoft on raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[1] #de6728 vs surface                      3.49  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[2] #4e98d3 vs surface                      3.87  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[3] #748d1c vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[4] #bd6eb6 vs surface                      3.48  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[5] #009675 vs surface                      3.22  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[6] #b08405 vs surface                      3.53  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[7] #8679c6 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[8] #c66866 vs surface                      3.20  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           30.2  (>= 15.0)  worst 7-8 #8679c6/#c66866
+  [PASS] night chart       adjacent dE2000 protan                           17.7  (>= 15.0)  worst 5-6 #009675/#b08405
+  [PASS] night chart       adjacent dE2000 deutan                           20.7  (>= 15.0)  worst 4-5 #bd6eb6/#009675
+  [PASS] night chart       adjacent dE2000 tritan                           21.0  (>= 15.0)  worst 2-3 #4e98d3/#748d1c
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.599  (>= 0.48)  L range 0.599-0.657
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.115  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            16.9  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                       8.8  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #373433; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.81 0.71 0.62 0.53
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.092  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #a74d1d; lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.009  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.35  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.39  (>= 3.0)  lite: raised on surface over glowB over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             42.5  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       35.0  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.69 0.54 0.40 0.56 0.71
+
+== indigo - Indigo (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 0.8  (<= 25)  chartSequential[1] #919ad5 / #d5dcff
+  [PASS] day   text        text                                            13.08  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.08  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.21  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.31  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               6.29  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          7.71  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                         9.39  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                   9.93  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     4.62  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  4.96  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.83  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.83  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.31  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         46.0  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         55.9  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          41.2  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            19.5  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.67  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.65  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #4c48c6 vs surface                      5.43  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #a77511 vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #0986c4 vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #8d2f4c vs surface                      6.27  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #6f8814 vs surface                      3.18  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #7b4592 vs surface                      5.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #0a9069 vs surface                      3.18  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #843c02 vs surface                      6.30  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           45.6  (>= 15.0)  worst 6-7 #7b4592/#0a9069
+  [PASS] day   chart       adjacent dE2000 protan                           25.2  (>= 15.0)  worst 7-8 #0a9069/#843c02
+  [PASS] day   chart       adjacent dE2000 deutan                           21.3  (>= 15.0)  worst 7-8 #0a9069/#843c02
+  [PASS] day   chart       adjacent dE2000 tritan                           33.8  (>= 15.0)  worst 5-6 #6f8814/#7b4592
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.444  (>= 0.43)  L range 0.444-0.599
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.116  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            24.1  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                      14.5  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #e7e8f7; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.70 0.60 0.50 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.099  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #919ad5; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.007  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.34  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.32  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             47.5  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       41.4  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.59 0.76 0.90 0.76 0.59
+  [PASS] night text        text                                             9.12  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.12  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.20  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.30  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.69  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.57  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         6.05  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   7.90  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.69  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.01  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.81  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.81  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    6.28  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         49.9  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         59.6  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          42.1  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            30.5  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.65  (>= 4.5)  lite: successSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  lite: warningSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  lite: dangerSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.65  (>= 4.5)  lite: infoSoft on raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[1] #7478fa vs surface                      3.47  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #a97716 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #1a98db vs surface                      3.91  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #cd6882 vs surface                      3.52  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #718a17 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #a26bba vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #3ea981 vs surface                      4.29  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #c56628 vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           43.6  (>= 15.0)  worst 6-7 #a26bba/#3ea981
+  [PASS] night chart       adjacent dE2000 protan                           19.4  (>= 15.0)  worst 7-8 #3ea981/#c56628
+  [PASS] night chart       adjacent dE2000 deutan                           18.5  (>= 15.0)  worst 4-5 #cd6882/#718a17
+  [PASS] night chart       adjacent dE2000 tritan                           31.2  (>= 15.0)  worst 5-6 #718a17/#a26bba
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.593  (>= 0.48)  L range 0.593-0.662
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.115  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            22.3  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                      10.0  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #2d2e61; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.71 0.61 0.52
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.094  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #545abd; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.37  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.37  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             47.9  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       41.7  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.69 0.54 0.40 0.54 0.69
+
+== onyx - Onyx & Champagne (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 0.9  (<= 25)  chartSequential[1] #b8a179 / #efdcba
+  [PASS] day   text        text                                            14.28  (>= 4.5)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        text (target 7:1)                               14.28  (>= 7.0)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        textMuted                                        5.26  (>= 4.5)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   text        textFaint                                        3.32  (>= 3.0)  full: accentSoft on surface over glowB over backdropTo
+  [PASS] day   accent      accentFg on accent                               5.65  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          6.88  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                         8.30  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                   8.69  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     4.60  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  4.82  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.81  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.81  (>= 4.5)  full: surface over glowB over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.31  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         29.8  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         11.3  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          32.1  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            41.5  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.71  (>= 4.5)  full: successSoft on surface over glowB over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowB over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.68  (>= 4.5)  full: dangerSoft on surface over glowB over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.70  (>= 4.5)  full: infoSoft on surface over glowB over backdropTo
+  [PASS] day   chart       chart[1] #8a6705 vs surface                      4.46  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[2] #5387c8 vs surface                      3.16  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[3] #973141 vs surface                      6.33  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[4] #8676d2 vs surface                      3.24  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[5] #834700 vs surface                      6.25  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[6] #009675 vs surface                      3.19  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[7] #7a417d vs surface                      6.23  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       chart[8] #6a8f41 vs surface                      3.19  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           34.7  (>= 15.0)  worst 3-4 #973141/#8676d2
+  [PASS] day   chart       adjacent dE2000 protan                           26.7  (>= 15.0)  worst 5-6 #834700/#009675
+  [PASS] day   chart       adjacent dE2000 deutan                           23.9  (>= 15.0)  worst 5-6 #834700/#009675
+  [PASS] day   chart       adjacent dE2000 tritan                           37.9  (>= 15.0)  worst 4-5 #8676d2/#834700
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.461  (>= 0.43)  L range 0.461-0.621
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.108  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            23.1  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                      14.9  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #f1f0f1; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.72 0.61 0.51 0.41 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.104  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #b8a179; full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.36  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.33  (>= 3.0)  full: surface over glowB over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             42.9  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       35.6  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.60 0.77 0.90 0.78 0.61
+  [PASS] night text        text                                             7.75  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                7.75  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.20  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.30  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               9.00  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                         10.02  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         7.78  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   6.25  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                    11.81  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  7.45  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.84  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.84  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    8.14  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         26.7  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         13.5  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          29.3  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            45.0  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.67  (>= 4.5)  lite: successSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.67  (>= 4.5)  lite: warningSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.65  (>= 4.5)  lite: dangerSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.65  (>= 4.5)  lite: infoSoft on raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[1] #b08507 vs surface                      3.87  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #5a8fd1 vs surface                      3.92  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #c55b67 vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #8f7fdb vs surface                      3.88  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #b9690f vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #029775 vs surface                      3.55  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #ba71be vs surface                      3.86  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #638839 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           30.3  (>= 15.0)  worst 3-4 #c55b67/#8f7fdb
+  [PASS] night chart       adjacent dE2000 protan                           18.7  (>= 15.0)  worst 5-6 #b9690f/#029775
+  [PASS] night chart       adjacent dE2000 deutan                           21.7  (>= 15.0)  worst 5-6 #b9690f/#029775
+  [PASS] night chart       adjacent dE2000 tritan                           35.3  (>= 15.0)  worst 4-5 #8f7fdb/#b9690f
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.581  (>= 0.48)  L range 0.581-0.655
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.115  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            18.8  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                       9.9  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #332f28; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.70 0.60 0.50
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.099  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                0  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #7f5c03; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.42  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.43  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             42.6  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       36.1  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.67 0.52 0.40 0.53 0.68
+
+== aubergine - Aubergine & Rose Gold (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 0.8  (<= 25)  chartDiverging[1] #058a8f / #2da3a9
+  [PASS] day   text        text                                            13.17  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.17  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.21  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.32  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               8.55  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                         10.34  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                        12.39  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                  12.85  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     4.60  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  6.84  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.80  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.80  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.32  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         60.6  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         42.6  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          25.8  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            35.1  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.69  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.68  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.67  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #8a257a vs surface                      6.40  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #038366 vs surface                      3.78  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #9e7b02 vs surface                      3.18  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #6d7ac8 vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #bc694c vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #2987be vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #5b7014 vs surface                      4.45  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #c56072 vs surface                      3.17  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           34.2  (>= 15.0)  worst 2-3 #038366/#9e7b02
+  [PASS] day   chart       adjacent dE2000 protan                           17.5  (>= 15.0)  worst 2-3 #038366/#9e7b02
+  [PASS] day   chart       adjacent dE2000 deutan                           17.7  (>= 15.0)  worst 7-8 #5b7014/#c56072
+  [PASS] day   chart       adjacent dE2000 tritan                           22.6  (>= 15.0)  worst 6-7 #2987be/#5b7014
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.455  (>= 0.43)  L range 0.455-0.615
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.107  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            16.0  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                       8.9  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #f0e8f2; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.71 0.61 0.51 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.101  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                0  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.13  (>= 2.0)  #c38fb1; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.009  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.34  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             23.6  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       18.1  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.58 0.74 0.90 0.77 0.60
+  [PASS] night text        text                                             9.67  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.67  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.22  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.33  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.66  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.57  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         6.00  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   7.16  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.66  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.28  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.82  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.82  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    6.70  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         67.6  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         51.3  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          29.4  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            43.7  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.65  (>= 4.5)  lite: successSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.66  (>= 4.5)  lite: warningSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.67  (>= 4.5)  lite: dangerSoft on raised on surface over glowA over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.67  (>= 4.5)  lite: infoSoft on raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[1] #c25caf vs surface                      3.48  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #068c6d vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #ac8501 vs surface                      3.91  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #6976c4 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #b76547 vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #2382ba vs surface                      3.18  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #6c850d vs surface                      3.20  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #d16b7d vs surface                      3.91  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           35.5  (>= 15.0)  worst 2-3 #068c6d/#ac8501
+  [PASS] night chart       adjacent dE2000 protan                           17.9  (>= 15.0)  worst 2-3 #068c6d/#ac8501
+  [PASS] night chart       adjacent dE2000 deutan                           17.3  (>= 15.0)  worst 7-8 #6c850d/#d16b7d
+  [PASS] night chart       adjacent dE2000 tritan                           18.8  (>= 15.0)  worst 6-7 #2382ba/#6c850d
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.570  (>= 0.48)  L range 0.570-0.651
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.112  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            17.3  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                       9.1  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #452045; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.70 0.60 0.51
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.097  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.15  (>= 2.0)  #95427d; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.009  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.43  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.42  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             23.7  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       18.5  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.66 0.50 0.40 0.53 0.68
+
+== petrol - Petrol & Pearl (PASS)
+  [PASS] both  chart       slot hue day vs night (<= 25 deg)                 0.9  (<= 25)  chartSequential[5] #01343e / #036e80
+  [PASS] day   text        text                                            13.41  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        text (target 7:1)                               13.41  (>= 7.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textMuted                                        5.26  (>= 4.5)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   text        textFaint                                        3.32  (>= 3.0)  full: accentSoft on surface over glowA over backdropTo
+  [PASS] day   accent      accentFg on accent                               7.07  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentHover                          8.55  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentActive                        10.44  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientFrom                  10.91  (>= 4.5)  
+  [PASS] day   accent      accentFg on accentGradientTo                     4.63  (>= 4.5)  
+  [PASS] day   accent      accent as UI graphic vs surface                  5.83  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus ring vs surface (>=3)                      4.80  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      focus as accent text (>=4.5)                     4.80  (>= 4.5)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent2 as graphic vs surface                    3.31  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   accent      accent vs success dE2000                         31.2  (>= 10.0)  
+  [PASS] day   accent      accent vs warning dE2000                         38.9  (>= 10.0)  
+  [PASS] day   accent      accent vs danger dE2000                          54.5  (>= 10.0)  
+  [PASS] day   accent      accent vs info dE2000                            18.0  (>= 10.0)  
+  [PASS] day   semantic    success as text (>=4.5)                          4.69  (>= 4.5)  full: successSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    warning as text (>=4.5)                          4.65  (>= 4.5)  full: warningSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  full: dangerSoft on surface over glowA over backdropTo
+  [PASS] day   semantic    info as text (>=4.5)                             4.66  (>= 4.5)  full: infoSoft on surface over glowA over backdropTo
+  [PASS] day   chart       chart[1] #108db2 vs surface                      3.16  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[2] #a95043 vs surface                      4.43  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[3] #966ecb vs surface                      3.22  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[4] #846603 vs surface                      4.46  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[5] #0c9562 vs surface                      3.16  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[6] #944b05 vs surface                      5.30  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[7] #647fcb vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       chart[8] #708b38 vs surface                      3.19  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   chart       adjacent dE2000 normal                           33.5  (>= 15.0)  worst 4-5 #846603/#0c9562
+  [PASS] day   chart       adjacent dE2000 protan                           17.1  (>= 15.0)  worst 4-5 #846603/#0c9562
+  [PASS] day   chart       adjacent dE2000 deutan                           15.9  (>= 15.0)  worst 4-5 #846603/#0c9562
+  [PASS] day   chart       adjacent dE2000 tritan                           15.9  (>= 15.0)  worst 7-8 #647fcb/#708b38
+  [PASS] day   chart-skill OKLCH L in band (0.43, 0.77)                    0.494  (>= 0.43)  L range 0.494-0.617
+  [PASS] day   chart-skill OKLCH chroma >= 0.10                            0.107  (>= 0.1)  
+  [PASS] day   chart-skill OKLab dE normal >= 15                            15.6  (>= 15)  
+  [PASS] day   chart-skill OKLab dE protan/deutan >= 8                       9.2  (>= 8)  
+  [PASS] day   chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #e7eff1; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] day   scales      sequential light->dark monotone                     1  (== 1)  L 0.70 0.60 0.50 0.40 0.30
+  [PASS] day   scales      sequential adjacent dL >= 0.06                  0.099  (>= 0.06)  
+  [PASS] day   scales      sequential single hue (spread <= 40)                1  (<= 40)  
+  [PASS] day   scales      sequential step nearest surface >= 2             2.15  (>= 2.0)  #77a8b5; full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] day   scales      diverging pole 1 vs surface                      3.35  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging pole 5 vs surface                      3.33  (>= 3.0)  full: surface over glowA over backdropTo
+  [PASS] day   scales      diverging poles dE2000 (all visions)             27.7  (>= 15)  
+  [PASS] day   scales      diverging inner steps dE2000 (all visions)       21.2  (>= 10)  
+  [PASS] day   scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.58 0.76 0.90 0.78 0.61
+  [PASS] night text        text                                             9.52  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        text (target 7:1)                                9.52  (>= 7.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textMuted                                        5.21  (>= 4.5)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night text        textFaint                                        3.31  (>= 3.0)  lite: accentSoft on raised on surface over glowA over backdropFrom
+  [PASS] night accent      accentFg on accent                               4.70  (>= 4.5)  
+  [PASS] night accent      accentFg on accentHover                          4.57  (>= 4.5)  
+  [PASS] night accent      accentFg on accentActive                         6.08  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientFrom                   7.21  (>= 4.5)  
+  [PASS] night accent      accentFg on accentGradientTo                     4.70  (>= 4.5)  
+  [PASS] night accent      accent as UI graphic vs surface                  3.12  (>= 3.0)  full: surface over glowA over backdropFrom
+  [PASS] night accent      focus ring vs surface (>=3)                      4.84  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      focus as accent text (>=4.5)                     4.84  (>= 4.5)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent2 as graphic vs surface                    9.67  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night accent      accent vs success dE2000                         38.1  (>= 10.0)  
+  [PASS] night accent      accent vs warning dE2000                         46.4  (>= 10.0)  
+  [PASS] night accent      accent vs danger dE2000                          57.4  (>= 10.0)  
+  [PASS] night accent      accent vs info dE2000                            28.5  (>= 10.0)  
+  [PASS] night semantic    success as text (>=4.5)                          4.67  (>= 4.5)  lite: successSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    warning as text (>=4.5)                          4.65  (>= 4.5)  lite: warningSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    danger as text (>=4.5)                           4.66  (>= 4.5)  lite: dangerSoft on raised on surface over glowB over backdropFrom
+  [PASS] night semantic    info as text (>=4.5)                             4.65  (>= 4.5)  lite: infoSoft on raised on surface over glowB over backdropFrom
+  [PASS] night chart       chart[1] #0a8bb0 vs surface                      3.21  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[2] #c16557 vs surface                      3.17  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[3] #a37bda vs surface                      3.86  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[4] #9e7a01 vs surface                      3.16  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[5] #2cab75 vs surface                      4.33  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[6] #c96f24 vs surface                      3.49  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[7] #627dc9 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       chart[8] #6e8936 vs surface                      3.19  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night chart       adjacent dE2000 normal                           33.1  (>= 15.0)  worst 2-3 #c16557/#a37bda
+  [PASS] night chart       adjacent dE2000 protan                           16.0  (>= 15.0)  worst 5-6 #2cab75/#c96f24
+  [PASS] night chart       adjacent dE2000 deutan                           15.8  (>= 15.0)  worst 5-6 #2cab75/#c96f24
+  [PASS] night chart       adjacent dE2000 tritan                           15.9  (>= 15.0)  worst 7-8 #627dc9/#6e8936
+  [PASS] night chart-skill OKLCH L in band (0.48, 0.67)                    0.591  (>= 0.48)  L range 0.591-0.660
+  [PASS] night chart-skill OKLCH chroma >= 0.10                            0.111  (>= 0.1)  
+  [PASS] night chart-skill OKLab dE normal >= 15                            16.4  (>= 15)  
+  [PASS] night chart-skill OKLab dE protan/deutan >= 8                       8.6  (>= 8)  
+  [PASS] night chart-skill dataviz validate_palette.py (exit 0, no WARN)   exit 0  (== 0)  surface #16363f; PASS Lightness | PASS Chroma | PASS CVD | PASS Normal-vision | PASS Contrast
+  [PASS] night scales      sequential light->dark monotone                     1  (== 1)  L 0.90 0.80 0.70 0.60 0.50
+  [PASS] night scales      sequential adjacent dL >= 0.06                  0.101  (>= 0.06)  
+  [PASS] night scales      sequential single hue (spread <= 40)                2  (<= 40)  
+  [PASS] night scales      sequential step nearest surface >= 2             2.14  (>= 2.0)  #036e80; lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging midpoint grey (C <= 0.03)             0.008  (<= 0.03)  
+  [PASS] night scales      diverging pole 1 vs surface                      4.40  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging pole 5 vs surface                      4.39  (>= 3.0)  lite: raised on surface over glowA over backdropFrom
+  [PASS] night scales      diverging poles dE2000 (all visions)             27.5  (>= 15)  
+  [PASS] night scales      diverging inner steps dE2000 (all visions)       21.7  (>= 10)  
+  [PASS] night scales      diverging arms monotone to midpoint                 1  (== 1)  L 0.67 0.52 0.40 0.54 0.69
+
+DATAVIZ SKILL VALIDATOR - raw output per palette and mode
+-- burgundy day (surface #e9ecf4)
+   Palette (light, surface #e9ecf4, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #8b6202↔#099272 ΔE 11.0 (deutan) · tritan 13.4
+     [PASS] Normal-vision floor    worst adjacent #8b6202↔#099272 ΔE 17.0 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- burgundy night (surface #511b2e)
+   Palette (dark, surface #511b2e, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #bc891b↔#0d8b6d ΔE 10.4 (protan) · tritan 11.7
+     [PASS] Normal-vision floor    worst adjacent #bc891b↔#0d8b6d ΔE 19.5 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- sapphire day (surface #e2ecf8)
+   Palette (light, surface #e2ecf8, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #a6501a↔#069171 ΔE 10.1 (deutan) · tritan 8.3
+     [PASS] Normal-vision floor    worst adjacent #069171↔#8e5f03 ΔE 17.6 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- sapphire night (surface #1e3164)
+   Palette (dark, surface #1e3164, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #cc621f↔#0bac87 ΔE 11.4 (deutan) · tritan 5.4
+     [PASS] Normal-vision floor    worst adjacent #0bac87↔#ac761a ΔE 19.3 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- emerald day (surface #e1f0ee)
+   Palette (light, surface #e1f0ee, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #8a3e01↔#0b865c ΔE 10.7 (deutan) · tritan 7.7
+     [PASS] Normal-vision floor    worst adjacent #c8626c↔#786bba ΔE 17.6 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- emerald night (surface #1d3a30)
+   Palette (dark, surface #1d3a30, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #cc651a↔#2c9b6f ΔE 9.8 (deutan) · tritan 7.6
+     [PASS] Normal-vision floor    worst adjacent #c9626d↔#8577c8 ΔE 17.0 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- graphite day (surface #f1eeee)
+   Palette (light, surface #f1eeee, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #a57d0d↔#008769 ΔE 9.0 (protan) · tritan 11.3
+     [PASS] Normal-vision floor    worst adjacent #a57d0d↔#008769 ΔE 16.7 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- graphite night (surface #373433)
+   Palette (dark, surface #373433, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #009675↔#bd6eb6 ΔE 8.8 (deutan) · tritan 11.6
+     [PASS] Normal-vision floor    worst adjacent #c66866↔#8679c6 ΔE 16.9 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- indigo day (surface #e7e8f7)
+   Palette (light, surface #e7e8f7, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #843c02↔#0a9069 ΔE 14.5 (deutan) · tritan 13.2
+     [PASS] Normal-vision floor    worst adjacent #843c02↔#0a9069 ΔE 24.1 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- indigo night (surface #2d2e61)
+   Palette (dark, surface #2d2e61, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #c56628↔#3ea981 ΔE 10.0 (deutan) · tritan 8.3
+     [PASS] Normal-vision floor    worst adjacent #c56628↔#3ea981 ΔE 22.3 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- onyx day (surface #f1f0f1)
+   Palette (light, surface #f1f0f1, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #7a417d↔#009675 ΔE 14.9 (deutan) · tritan 17.8
+     [PASS] Normal-vision floor    worst adjacent #009675↔#834700 ΔE 23.1 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- onyx night (surface #332f28)
+   Palette (dark, surface #332f28, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #ba71be↔#029775 ΔE 9.9 (deutan) · tritan 14.6
+     [PASS] Normal-vision floor    worst adjacent #8f7fdb↔#c55b67 ΔE 18.8 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- aubergine day (surface #f0e8f2)
+   Palette (light, surface #f0e8f2, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #9e7b02↔#038366 ΔE 8.9 (protan) · tritan 13.4
+     [PASS] Normal-vision floor    worst adjacent #9e7b02↔#038366 ΔE 16.0 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- aubergine night (surface #452045)
+   Palette (dark, surface #452045, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #068c6d↔#c25caf ΔE 9.1 (deutan) · tritan 9.2
+     [PASS] Normal-vision floor    worst adjacent #ac8501↔#068c6d ΔE 17.3 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- petrol day (surface #e7eff1)
+   Palette (light, surface #e7eff1, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.43–0.77
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #0c9562↔#846603 ΔE 9.2 (deutan) · tritan 7.3
+     [PASS] Normal-vision floor    worst adjacent #0c9562↔#846603 ΔE 15.6 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+-- petrol night (surface #16363f)
+   Palette (dark, surface #16363f, categorical): 8 slots
+     [PASS] Lightness band         all 8 inside L 0.48–0.67
+     [PASS] Chroma floor           all 8 >= 0.1
+     [PASS] CVD separation         worst adjacent #c96f24↔#2cab75 ΔE 8.6 (deutan) · tritan 7.3
+     [PASS] Normal-vision floor    worst adjacent #2cab75↔#9e7a01 ΔE 16.4 (normal)
+     [PASS] Contrast vs surface    all 8 >= 3:1
+     → ALL CHECKS PASS  (CVD in the 6–8 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)
+     scope: categorical palettes only. For a lone status/text color check WCAG text contrast; for a sequential ramp, lightness monotonicity.
+
+OVERALL: ALL CHECKS PASS
