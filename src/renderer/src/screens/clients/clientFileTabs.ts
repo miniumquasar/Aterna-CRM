@@ -1,16 +1,30 @@
 /**
  * The client file's tabs, in order. Every tab is pre-wired here; each
- * domain fills in its own tab's component, which gets the client's id.
+ * domain fills in its own tab's component, which gets the client's id:
+ * overview, contacts and registers (clients), deadlines (compliance), work
+ * (work), aml and issues (aml), communications and documents (comms),
+ * references (references), companiesHouse (integrations).
  */
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
-import { CalendarClock, FileText, FolderKanban, IdCard, LayoutDashboard, ListTree, MessagesSquare, ShieldCheck, TriangleAlert, Users, type LucideIcon } from 'lucide-react'
+import { CalendarClock, FileText, FolderKanban, IdCard, Landmark, LayoutDashboard, ListTree, MessagesSquare, ShieldCheck, TriangleAlert, Users, type LucideIcon } from 'lucide-react'
 import type { Role } from '@shared/domain/roles'
 
 export interface ClientFileTabProps {
   clientId: number
 }
 
-export type ClientFileTabId = 'overview' | 'contacts' | 'registers' | 'deadlines' | 'work' | 'aml' | 'communications' | 'documents' | 'references' | 'issues'
+export type ClientFileTabId =
+  | 'overview'
+  | 'contacts'
+  | 'registers'
+  | 'deadlines'
+  | 'work'
+  | 'aml'
+  | 'communications'
+  | 'documents'
+  | 'references'
+  | 'companiesHouse'
+  | 'issues'
 
 export interface ClientFileTab {
   id: ClientFileTabId
@@ -33,5 +47,6 @@ export const CLIENT_FILE_TABS: readonly ClientFileTab[] = [
   { id: 'communications', title: 'Communications', icon: MessagesSquare, minRole: 'staff', component: tab(() => import('../comms/ClientCommsTab')) },
   { id: 'documents', title: 'Documents', icon: FileText, minRole: 'staff', component: tab(() => import('../comms/ClientDocumentsTab')) },
   { id: 'references', title: 'References', icon: IdCard, minRole: 'staff', component: tab(() => import('../practice/ClientReferencesTab')) },
+  { id: 'companiesHouse', title: 'Companies House', icon: Landmark, minRole: 'staff', component: tab(() => import('../companies-house/ClientCompaniesHouseTab')) },
   { id: 'issues', title: 'Issues', icon: TriangleAlert, minRole: 'staff', component: tab(() => import('../data/ClientIssuesTab')) }
 ]

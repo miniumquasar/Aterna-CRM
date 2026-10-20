@@ -5,7 +5,7 @@
 import { Suspense } from 'react'
 import { Settings } from 'lucide-react'
 import { roleAtLeast } from '@shared/domain/roles'
-import { GlassCard, Loading, PageHeader } from '@renderer/components/ui'
+import { EmptyState, GlassCard, Loading, PageHeader } from '@renderer/components/ui'
 import { cx } from '@renderer/lib/cx'
 import type { ScreenProps } from '@renderer/navigation/routes'
 import { navigate } from '@renderer/stores/router'
@@ -16,10 +16,20 @@ export default function SettingsScreen({ params }: ScreenProps): JSX.Element {
   const actor = useActor()
   const sections = SETTINGS_SECTIONS.filter((s) => roleAtLeast(actor?.role, s.minRole))
   const current = sections.find((s) => s.id === params.section) ?? sections[0]
+  const header = <PageHeader title="Settings" subtitle="Saved for the practice, or for you on this PC where it says so" icon={Settings} />
+  // Only while the person signed in is still being read (or has just signed out).
+  if (!current) {
+    return (
+      <>
+        {header}
+        <EmptyState title="Settings aren’t open to you" body="Sign in to change settings." />
+      </>
+    )
+  }
   const Section = current.component
   return (
     <>
-      <PageHeader title="Settings" subtitle="Saved for the practice, or for you on this PC where it says so" icon={Settings} />
+      {header}
       <div className="grid grid-cols-[15rem_minmax(0,1fr)] gap-6">
         <nav aria-label="Settings sections">
           <ul className="flex flex-col gap-0.5">

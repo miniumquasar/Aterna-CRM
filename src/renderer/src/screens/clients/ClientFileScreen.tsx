@@ -17,10 +17,10 @@ export default function ClientFileScreen({ params }: ScreenProps): JSX.Element {
   const clientId = typeof params.clientId === 'number' && params.clientId > 0 ? params.clientId : null
   const tabs = CLIENT_FILE_TABS.filter((t) => roleAtLeast(actor?.role, t.minRole))
   const current = tabs.find((t) => t.id === params.tab) ?? tabs[0]
-  const Tab = current.component
   const back = <GlassButton variant="ghost" icon={ArrowLeft} onClick={() => navigate('clients')}>All clients</GlassButton>
 
-  if (clientId === null) {
+  // No tab is open while the person signed in is still being read (or has just signed out).
+  if (clientId === null || !current) {
     return (
       <>
         <PageHeader title="Client file" icon={FolderOpen} actions={back} />
@@ -28,6 +28,7 @@ export default function ClientFileScreen({ params }: ScreenProps): JSX.Element {
       </>
     )
   }
+  const Tab = current.component
   return (
     <>
       <PageHeader title="Client file" eyebrow={`Client ${clientId}`} icon={FolderOpen} actions={back} />

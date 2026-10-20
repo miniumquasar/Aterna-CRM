@@ -8,6 +8,7 @@
  *   3. every route in src/renderer/src/navigation/routes.ts, in Day and in
  *      Night (sidebar routes by clicking the sidebar, the rest by address),
  *      plus Go to… (Ctrl+K);
+ *   4. every client-file tab and every settings section;
  *
  * failing on any console error or uncaught page error. Screenshots go to
  * test-results/smoke/. Run it with npm run smoke.
@@ -28,6 +29,8 @@ rmSync(shots, { recursive: true, force: true })
 mkdirSync(shots, { recursive: true })
 
 const { ROUTES } = await tsImport('../src/renderer/src/navigation/routes.ts', import.meta.url)
+const { CLIENT_FILE_TABS } = await tsImport('../src/renderer/src/screens/clients/clientFileTabs.ts', import.meta.url)
+const { SETTINGS_SECTIONS } = await tsImport('../src/renderer/src/screens/settings/sections.ts', import.meta.url)
 const routes = ROUTES.filter((r) => !r.devOnly)
 const SAMPLE_PARAMS = { clientId: 1 }
 
@@ -131,9 +134,42 @@ try {
   await page.waitForFunction(() => document.activeElement?.getAttribute('role') === 'tab' && document.activeElement?.textContent?.includes('Contacts'))
   await page.waitForFunction(() => window.location.hash.includes('tab=contacts'))
 
+  // ── Every client-file tab and settings section ───────────────────────────
+  step('every client-file tab and settings section')
+  const settled = async (what) => {
+    await page.waitForFunction(() => !document.querySelector('main [role="status"]'), undefined, { timeout: 8_000 }).catch(() => {
+      problems.push(`${what} was still loading after 8 seconds`)
+    })
+  }
+  for (const tab of CLIENT_FILE_TABS) {
+    await page.evaluate((hash) => {
+      window.location.hash = hash
+    }, `#/clientFile?clientId=1&tab=${tab.id}`)
+    await page.getByRole('tab', { name: tab.title, selected: true }).waitFor()
+    await settled(`the client file’s ${tab.title} tab`)
+    visited.push(`tab:${tab.id}`)
+  }
+  // Tabs that don't fit can still be reached with the mouse.
+  await page.evaluate(() => {
+    window.location.hash = '#/clientFile?clientId=1&tab=overview'
+  })
+  const more = page.getByRole('button', { name: 'Show more tabs' })
+  if (await more.count()) {
+    await more.click()
+    await page.getByRole('button', { name: 'Show earlier tabs' }).waitFor()
+  }
+  await page.screenshot({ path: join(shots, 'client-file-tabs.png') })
+  await sidebar.locator('[data-nav="settings"]').click()
+  for (const section of SETTINGS_SECTIONS) {
+    await page.locator(`[data-section="${section.id}"]`).click()
+    await page.locator('main h2', { hasText: section.title }).first().waitFor()
+    await settled(`Settings → ${section.title}`)
+    visited.push(`settings:${section.id}`)
+  }
+
   // ── Settings → Appearance changes the theme ─────────────────────────────
   step('Settings → Appearance')
-  await sidebar.locator('[data-nav="settings"]').click()
+  await page.locator('[data-section="appearance"]').click()
   await page.locator('[data-palette-choice="sapphire"]').click()
   await page.waitForFunction(() => document.documentElement.dataset.palette === 'sapphire')
   await page.screenshot({ path: join(shots, 'appearance-sapphire.png') })
@@ -158,4 +194,8 @@ if (problems.length) {
   for (const p of problems) console.error(`  - ${p}`)
   process.exit(1)
 }
-console.log(`smoke: passed — ${visited.length} route visits (${routes.length} routes × Day and Night), screenshots in test-results/smoke/`)
+const routeVisits = visited.filter((v) => v.startsWith('day:') || v.startsWith('night:')).length
+console.log(
+  `smoke: passed — ${routeVisits} route visits (${routes.length} routes × Day and Night), ${CLIENT_FILE_TABS.length} client-file tabs and ` +
+    `${SETTINGS_SECTIONS.length} settings sections; screenshots in test-results/smoke/`
+)

@@ -1,11 +1,18 @@
 /**
  * Go to… (Ctrl+K) asks each provider in turn. A domain that wants its
- * records in Go to… fills its own provider (pre-wired here), e.g.
- * screens/clients/searchProvider.ts for clients and their other names.
+ * records in Go to… fills its own provider (pre-wired here):
+ *
+ *   clients      screens/clients/searchProvider.ts     clients, codes, company numbers, other names
+ *   references   screens/practice/searchProvider.ts    whose reference is this?
+ *   compliance   screens/compliance/searchProvider.ts  deadlines
+ *   work         screens/work/searchProvider.ts        tasks and invoices
  */
 import type { LucideIcon } from 'lucide-react'
 import type { Role } from '@shared/domain/roles'
 import { clientsSearchProvider } from '../screens/clients/searchProvider'
+import { complianceSearchProvider } from '../screens/compliance/searchProvider'
+import { referencesSearchProvider } from '../screens/practice/searchProvider'
+import { workSearchProvider } from '../screens/work/searchProvider'
 import { canOpen } from './nav'
 import { ROUTES, type RouteId, type RouteParams } from './routes'
 
@@ -67,4 +74,10 @@ export const routesSearchProvider: SearchProvider = {
 }
 
 /** Asked in this order; results show in this order. */
-export const SEARCH_PROVIDERS: readonly SearchProvider[] = [clientsSearchProvider, routesSearchProvider]
+export const SEARCH_PROVIDERS: readonly SearchProvider[] = [
+  clientsSearchProvider,
+  referencesSearchProvider,
+  complianceSearchProvider,
+  workSearchProvider,
+  routesSearchProvider
+]

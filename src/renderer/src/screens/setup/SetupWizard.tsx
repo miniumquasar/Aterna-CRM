@@ -2,7 +2,9 @@
  * The first-run wizard: firm details, first partner, recovery sheet, vault
  * passphrase, trial or licence, workbook import, then ready. Before anyone
  * can sign in it starts at the firm; once the first partner exists it
- * resumes after the partner step. Owned by the auth domain.
+ * resumes after the partner step. Owned by the auth domain. While nobody can
+ * sign in, the backup domain's RestoreOffer (restore from a backup instead,
+ * on a new PC) sits under the steps; keep it.
  */
 import { Suspense, useState } from 'react'
 import { Check } from 'lucide-react'
@@ -10,6 +12,7 @@ import type { AuthStatus } from '@shared/contracts/auth'
 import { PRODUCT_NAME } from '@shared/product'
 import { BrandMark } from '@renderer/components/layout/BrandMark'
 import { ModeSwitch } from '@renderer/components/layout/ModeSwitch'
+import { RestoreOffer } from '@renderer/components/recovery/RestoreOffer'
 import { GlassPanel, Loading } from '@renderer/components/ui'
 import { cx } from '@renderer/lib/cx'
 import { SETUP_STEPS, type SetupDraft } from './steps'
@@ -58,6 +61,11 @@ export function SetupWizard({ status }: { status: AuthStatus }): JSX.Element {
                 )
               })}
             </ol>
+            {status.setupNeeded && (
+              <div className="mt-6 empty:hidden">
+                <RestoreOffer />
+              </div>
+            )}
             <div className="mt-8">
               <ModeSwitch />
             </div>
