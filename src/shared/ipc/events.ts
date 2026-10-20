@@ -16,8 +16,8 @@ export interface ApiEvents {
   // ── end appearance ────────────────────────────────────────────────────────
 
   // ── auth ──────────────────────────────────────────────────────────────────
-  /** This window's session ended (signed out elsewhere, idle, access removed). */
-  'session.ended': { reason: 'signed_out' | 'idle' | 'access_removed' | 'expired' }
+  /** This window's session ended (signed out elsewhere, idle, access removed, locked after wrong passwords). */
+  'session.ended': { reason: 'signed_out' | 'idle' | 'access_removed' | 'expired' | 'locked' }
   // ── end auth ──────────────────────────────────────────────────────────────
 
   // ── licence ───────────────────────────────────────────────────────────────

@@ -4,5 +4,6 @@
  * Tables may reference core tables and lower-numbered domains only.
  */
 import type { Migration } from '../../migrate'
+import { migration0101People } from './0101_people'
 
-export const authMigrations: readonly Migration[] = []
+export const authMigrations: readonly Migration[] = [migration0101People]

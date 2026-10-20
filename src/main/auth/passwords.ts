@@ -4,6 +4,9 @@
  * later and old hashes still verify. Comparison is constant-time.
  */
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, passwordProblem } from '@shared/contracts/auth'
+
+export { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, passwordProblem }
 
 export interface ScryptCost {
   N: number
@@ -16,14 +19,21 @@ export const DEFAULT_COST: ScryptCost = { N: 2 ** 15, r: 8, p: 1 }
 const KEY_BYTES = 32
 const SALT_BYTES = 16
 
-export const MIN_PASSWORD_LENGTH = 10
-export const MAX_PASSWORD_LENGTH = 200
-
 function derive(password: string, salt: Buffer, cost: ScryptCost): Buffer {
   return scryptSync(password.normalize('NFKC'), salt, KEY_BYTES, { N: cost.N, r: cost.r, p: cost.p, maxmem: 256 * cost.N * cost.r + 1024 * 1024 })
 }
 
-export function hashPassword(password: string, cost: ScryptCost = DEFAULT_COST): string {
+let costForNewHashes: ScryptCost = DEFAULT_COST
+
+/**
+ * Tests only: a cheaper cost for hashes made from now on. Verifying always
+ * reads the cost stored in each hash, so nothing else changes.
+ */
+export function setCostForNewHashes(cost: ScryptCost): void {
+  costForNewHashes = cost
+}
+
+export function hashPassword(password: string, cost: ScryptCost = costForNewHashes): string {
   const salt = randomBytes(SALT_BYTES)
   const hash = derive(password, salt, cost)
   return ['scrypt', cost.N, cost.r, cost.p, salt.toString('base64'), hash.toString('base64')].join('$')
@@ -47,12 +57,4 @@ let decoy: string | null = null
 export function decoyHash(): string {
   decoy ??= hashPassword(randomBytes(12).toString('hex'))
   return decoy
-}
-
-/** A plain sentence about what is wrong with a new password, or null when it is fine. */
-export function passwordProblem(password: string): string | null {
-  if (password.length < MIN_PASSWORD_LENGTH) return `Use a password of at least ${MIN_PASSWORD_LENGTH} characters.`
-  if (password.length > MAX_PASSWORD_LENGTH) return `Use a password of at most ${MAX_PASSWORD_LENGTH} characters.`
-  if (password.trim() !== password) return 'A password can’t start or end with a space.'
-  return null
 }
