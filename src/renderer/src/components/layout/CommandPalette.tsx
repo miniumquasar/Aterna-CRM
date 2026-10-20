@@ -24,7 +24,7 @@ export interface CommandPaletteProps {
 
 export function CommandPalette({ open, onClose, role }: CommandPaletteProps): JSX.Element {
   return (
-    <Dialog open={open} onClose={onClose} label="Go to a client or a screen" placement="top" className="glass-raised max-w-xl overflow-hidden rounded-2xl">
+    <Dialog open={open} onClose={onClose} label="Go to a client or a screen" placement="top" className="glass-raised max-w-[38rem] overflow-hidden rounded-[22px]">
       <PaletteBody onClose={onClose} role={role} />
     </Dialog>
   )
@@ -83,8 +83,8 @@ function PaletteBody({ onClose, role }: { onClose: () => void; role: Role }): JS
   const activeId = flat[active] ? `${listId}-${flat[active].id}` : undefined
   return (
     <>
-      <div className="hairline flex items-center gap-3 border-b px-4">
-        <Search size={16} className="text-fg-subtle" aria-hidden />
+      <div className="hairline flex items-center gap-3 border-b px-5">
+        <Search size={18} className="shrink-0 text-accent-text" aria-hidden />
         <input
           ref={input}
           data-autofocus
@@ -98,16 +98,20 @@ function PaletteBody({ onClose, role }: { onClose: () => void; role: Role }): JS
           aria-controls={listId}
           aria-activedescendant={activeId}
           aria-autocomplete="list"
-          className="h-12 flex-1 bg-transparent text-[15px] text-fg outline-none placeholder:text-fg-subtle"
+          className="h-14 min-w-0 flex-1 bg-transparent text-base text-fg outline-none placeholder:text-fg-faint"
           data-testid="palette-input"
         />
         <Kbd>Esc</Kbd>
       </div>
       <div id={listId} role="listbox" aria-label="Results" className="max-h-[55vh] overflow-y-auto p-2">
-        {flat.length === 0 && <p className="px-3 py-8 text-center text-sm text-fg-muted">{query.trim() ? `Nothing matches “${query.trim()}”.` : 'Start typing to search.'}</p>}
+        {flat.length === 0 && (
+          <p className="px-3 py-10 text-center text-sm text-fg-muted">
+            {query.trim() ? `Nothing matches “${query.trim()}”. Try part of a name, a client code or a company number.` : 'Start typing a client’s name or code, or the name of a screen.'}
+          </p>
+        )}
         {groups.map((g, gi) => (
           <div key={g.heading} role="group" aria-label={g.heading}>
-            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-subtle" aria-hidden>
+            <p className="px-3 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted" aria-hidden>
               {g.heading}
             </p>
             {g.results.map((r, ri) => {
@@ -122,21 +126,34 @@ function PaletteBody({ onClose, role }: { onClose: () => void; role: Role }): JS
                   aria-selected={selected}
                   onMouseMove={() => setActive(i)}
                   onClick={() => choose(r)}
-                  className={cx('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2', selected ? 'bg-accent/15 text-fg' : 'text-fg-muted')}
+                  className={cx('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 transition-colors duration-100', selected ? 'is-selected' : 'text-fg-muted')}
                 >
-                  <Icon size={16} aria-hidden className={selected ? 'text-accent-text' : 'text-fg-subtle'} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-fg">{r.title}</span>
-                    {r.subtitle && <span className="block truncate text-xs text-fg-subtle">{r.subtitle}</span>}
+                  <span className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]', selected ? 'bg-accent-soft text-accent-text' : 'bg-fg/[0.06] text-fg-subtle')} aria-hidden>
+                    <Icon size={16} strokeWidth={1.8} />
                   </span>
-                  {r.hint && <span className="text-[11px] text-fg-subtle">{r.hint}</span>}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-fg">{r.title}</span>
+                    {r.subtitle && <span className="block truncate text-xs text-fg-muted">{r.subtitle}</span>}
+                  </span>
+                  {r.hint && <span className="ref-figures shrink-0 text-[11px] text-fg-muted">{r.hint}</span>}
+                  {selected && <ArrowRight size={14} aria-hidden className="shrink-0 text-accent-text" />}
                 </div>
               )
             })}
           </div>
         ))}
       </div>
-      <p className="hairline border-t px-4 py-2 text-[11px] text-fg-subtle">↑ ↓ to move · Enter to open · Esc to close</p>
+      <p className="hairline flex items-center gap-4 border-t px-5 py-2.5 text-[11.5px] text-fg-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <Kbd keys={['↑', '↓']} /> to move
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Kbd>Enter</Kbd> to open
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Kbd>Esc</Kbd> to close
+        </span>
+      </p>
     </>
   )
 }
