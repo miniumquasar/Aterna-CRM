@@ -1,0 +1,32 @@
+[
+ {
+  "seq": 1842,
+  "old_string": "  const selectedClientId = useUiStore((s) => s.selectedClientId)\n  const target = useReferenceTarget((s) => s.clientRef)",
+  "new_string": "  const target = useReferenceTarget((s) => s.clientRef)"
+ },
+ {
+  "seq": 1843,
+  "old_string": "  // arriving from a client record: open that client\n  useEffect(() => {\n    if (target || selectedClientId === null) return\n    const c = clients.find((x) => x.id === selectedClientId)\n    if (c) setTarget(c.ref)\n  }, [clients, selectedClientId, target, setTarget])\n\n",
+  "new_string": ""
+ },
+ {
+  "seq": 3300,
+  "old_string": "interface ClientOption {\n  id: number\n  ref: string\n  name: string\n}\n\n// ── Picking a client ───────────────────────────────────────────────────────\n\nexport function ClientPicker({ clients, onPick }: { clients: ClientOption[]; onPick: (ref: string) => void }): JSX.Element {\n  const [query, setQuery] = useState('')\n  const [refQuery, setRefQuery] = useState('')\n  const [found, setFound] = useState<ReferenceMatch[] | null>(null)\n  const matches = useMemo(() => {\n    const q = query.trim().toLowerCase()\n    if (!q) return []\n    return clients.filter((c) => c.name.toLowerCase().includes(q) || c.ref.toLowerCase().includes(q)).slice(0, 8)\n  }, [clients, query])",
+  "new_string": "export interface ClientOption {\n  id: number\n  ref: string\n  name: string\n  business_name?: string | null\n  reg_no?: string | null\n  other_names?: string | null\n}\n\n/** The client list as the pickers use it: those with a client code, with what else they can be found by. */\nexport const pickerClients = (list: readonly Client[]): ClientOption[] =>\n  list.flatMap((c) => (c.ref ? [{ id: c.id, ref: c.ref, name: c.client_name, business_name: c.business_name, reg_no: c.reg_no, other_names: c.other_names ?? null }] : []))\n\n// ── Picking a client ───────────────────────────────────────────────────────\n\nexport function ClientPicker({ clients, onPick }: { clients: ClientOption[]; onPick: (ref: string) => void }): JSX.Element {\n  const [query, setQuery] = useState('')\n  const [refQuery, setRefQuery] = useState('')\n  const [found, setFound] = useState<ReferenceMatch[] | null>(null)\n  // Ranked as Go to… ranks them: name, code, trading or other name, company number.\n  const matches = useMemo(() => rankClients(clients.map((c) => ({ ...c, client_name: c.name })), query, 8), [clients, query])"
+ },
+ {
+  "seq": 3301,
+  "old_string": "      <div>\n        <Field label=\"Find a client by name or code\">\n          <input className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder=\"Start typing\" />\n        </Field>",
+  "new_string": "      <div>\n        <Field label=\"Find a client by name or code\" hint=\"Trading names, other names and company numbers find them too\">\n          <input className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder=\"Start typing\" data-testid=\"client-picker-find\" />\n        </Field>"
+ },
+ {
+  "seq": 3302,
+  "old_string": "import type {\n  AgentAuthorisation,\n  AuthorisationStatus,\n  ClientIdentifier,",
+  "new_string": "import type {\n  AgentAuthorisation,\n  AuthorisationStatus,\n  Client,\n  ClientIdentifier,"
+ },
+ {
+  "seq": 3303,
+  "old_string": "import { useReferenceTarget } from './references/target'",
+  "new_string": "import { rankClients } from '@renderer/navigation/search'\nimport { useReferenceTarget } from './references/target'"
+ }
+]

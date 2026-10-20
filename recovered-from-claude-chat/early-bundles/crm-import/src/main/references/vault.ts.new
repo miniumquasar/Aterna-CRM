@@ -1,0 +1,584 @@
+/**
+ * Credential vault — stored logins for clients and the practice.
+ *
+ *   key          scrypt(passphrase, salt). A partner or manager types the passphrase to
+ *                unlock; it is never written anywhere. Only a verifier (an HMAC of a
+ *                fixed label under the key) is stored, in vault_keys.
+ *   secrets      each secret of an account (password, recovery word, backup codes, …) is
+ *                AES-256-GCM encrypted on its own with a fresh IV, and authenticated
+ *                against its account id, field and label — a ciphertext copied anywhere
+ *                else fails to open. Postal authorisation codes are encrypted the same
+ *                way on their agent_authorisations row.
+ *   unlocked     the key lives in main-process memory only and is wiped after 15 minutes
+ *                without use or on lock. Five wrong passphrases in a row pause unlocking
+ *                for 30 seconds.
+ *
+ * HMRC and GOV.UK sign-in (kind 'government_sign_in'):
+ *   - a partner switches storage on for the practice (off on a fresh install);
+ *   - a client's sign-in can be stored only while the client's permission is on record;
+ *   - every reveal of a client's sign-in records whether the client was present;
+ *   - withdrawing permission deletes that client's stored sign-ins at once (no key needed).
+ *
+ * Every change and every reveal goes to audit_log. Secret values never do.
+ * Losing the passphrase means the stored secrets can't be opened again: a copy of the
+ * database and its key file is not enough, which is the point.
+ */
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import type { Database } from 'better-sqlite3-multiple-ciphers'
+import type {
+  ConsentMethod,
+  CredentialConsent,
+  CredentialConsentInput,
+  GovernmentSignInSetting,
+  SecretField,
+  VaultEntry,
+  VaultEntryInput,
+  VaultSecretInfo,
+  VaultStatus
+} from '../../shared/types'
+import {
+  CONSENT_METHODS,
+  GOVERNMENT_SIGN_IN_NEEDS_PERMISSION,
+  GOVERNMENT_SIGN_IN_SWITCH_OFF,
+  isGovernmentSignIn,
+  SECRET_FIELDS
+} from '../../shared/references'
+import { canManage, clientForActor, localToday, UserFacingError, type Actor, type AuditFn } from './service'
+
+export interface KdfParams {
+  N: number
+  r: number
+  p: number
+}
+
+export interface VaultOptions {
+  now?: () => number
+  idleMinutes?: number
+  kdf?: KdfParams
+}
+
+export const DEFAULT_KDF: KdfParams = { N: 2 ** 17, r: 8, p: 1 }
+export const MIN_PASSPHRASE_LENGTH = 12
+export const GOVERNMENT_SIGN_IN_SETTING = 'vault.government_sign_in'
+const MAX_SECRET_LENGTH = 2000
+const VERIFIER_LABEL = 'aeterna-vault-verifier-v1'
+const MAX_FAILURES = 5
+const LOCKOUT_MS = 30_000
+
+interface KeyRow {
+  version: number
+  salt: string
+  n: number
+  r: number
+  p: number
+  verifier: string
+}
+
+interface EntryRow {
+  id: number
+  owner: 'client' | 'practice'
+  client_ref: string | null
+  kind: 'government_sign_in' | 'other'
+  platform: string
+  login_id: string | null
+  url: string | null
+  notes: string | null
+  updated_at: string
+}
+
+interface SecretRow {
+  id: number
+  credential_id: number
+  field: SecretField
+  label: string
+  secret_ct: string
+  secret_iv: string
+  secret_tag: string
+  key_version: number
+  reveal_count: number
+  last_revealed_at: string | null
+  last_revealed_by: string | null
+  updated_at: string
+}
+
+interface ConsentRow {
+  id: number
+  client_ref: string
+  given_on: string
+  method: ConsentMethod
+  evidence: string | null
+  scope: string | null
+  notes: string | null
+  recorded_by: string | null
+  recorded_at: string
+  withdrawn_on: string | null
+  withdrawn_by: string | null
+}
+
+interface Sealed {
+  ct: string
+  iv: string
+  tag: string
+}
+
+const toSecretInfo = (r: SecretRow): VaultSecretInfo => ({
+  id: r.id,
+  field: r.field,
+  label: r.label,
+  revealCount: r.reveal_count,
+  lastRevealedAt: r.last_revealed_at,
+  lastRevealedBy: r.last_revealed_by,
+  updatedAt: r.updated_at
+})
+
+const toConsent = (r: ConsentRow): CredentialConsent => ({
+  id: r.id,
+  clientRef: r.client_ref,
+  givenOn: r.given_on,
+  method: r.method,
+  evidence: r.evidence,
+  scope: r.scope,
+  notes: r.notes,
+  recordedBy: r.recorded_by,
+  recordedAt: r.recorded_at,
+  withdrawnOn: r.withdrawn_on,
+  withdrawnBy: r.withdrawn_by
+})
+
+/** What the audit log records about an account: never a secret. */
+const auditView = (r: EntryRow | undefined): Record<string, unknown> | null =>
+  r ? { owner: r.owner, client_ref: r.client_ref, kind: r.kind, platform: r.platform, login_id: r.login_id, url: r.url } : null
+
+const deriveKey = (passphrase: string, salt: Buffer, kdf: KdfParams): Buffer =>
+  scryptSync(passphrase.normalize('NFKC'), salt, 32, { N: kdf.N, r: kdf.r, p: kdf.p, maxmem: 256 * 1024 * 1024 })
+
+const verifierFor = (key: Buffer): Buffer => createHmac('sha256', key).update(VERIFIER_LABEL).digest()
+
+const secretAad = (credentialId: number, field: string, label: string): string => `aeterna-vault:${credentialId}:${field}:${label}`
+const codeAad = (authorisationId: number): string => `aeterna-vault:authorisation:${authorisationId}`
+
+const cleanText = (value: string | null | undefined, max: number, label: string): string | null => {
+  const t = (value ?? '').trim()
+  if (!t) return null
+  if (t.length > max) throw new UserFacingError(`${label} is longer than ${max} characters.`)
+  return t
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+export class CredentialVault {
+  private key: Buffer | null = null
+  private keyVersion = 0
+  private lastUse = 0
+  private failures = 0
+  private lockedOutUntil = 0
+
+  constructor(
+    private readonly db: Database,
+    private readonly opts: VaultOptions = {}
+  ) {}
+
+  // ── key handling ───────────────────────────────────────────────────────────
+
+  private now(): number {
+    return this.opts.now ? this.opts.now() : Date.now()
+  }
+
+  private get idleMs(): number {
+    return (this.opts.idleMinutes ?? 15) * 60_000
+  }
+
+  private keyRow(): KeyRow | undefined {
+    return this.db.prepare('SELECT version, salt, n, r, p, verifier FROM vault_keys ORDER BY version DESC LIMIT 1').get() as KeyRow | undefined
+  }
+
+  private expireIfIdle(): void {
+    if (this.key && this.now() - this.lastUse > this.idleMs) this.lock()
+  }
+
+  private requireKey(): Buffer {
+    this.expireIfIdle()
+    if (!this.key) throw new UserFacingError('The vault is locked. Unlock it with the vault passphrase first.')
+    this.lastUse = this.now()
+    return this.key
+  }
+
+  private seal(key: Buffer, aad: string, plaintext: string): Sealed {
+    const iv = randomBytes(12)
+    const cipher = createCipheriv('aes-256-gcm', key, iv)
+    cipher.setAAD(Buffer.from(aad, 'utf8'))
+    const ct = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()])
+    return { ct: ct.toString('base64'), iv: iv.toString('base64'), tag: cipher.getAuthTag().toString('base64') }
+  }
+
+  private open(key: Buffer, aad: string, sealed: Sealed): string | null {
+    try {
+      const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(sealed.iv, 'base64'))
+      decipher.setAAD(Buffer.from(aad, 'utf8'))
+      decipher.setAuthTag(Buffer.from(sealed.tag, 'base64'))
+      return Buffer.concat([decipher.update(Buffer.from(sealed.ct, 'base64')), decipher.final()]).toString('utf8')
+    } catch {
+      return null
+    }
+  }
+
+  status(actor?: Actor): VaultStatus {
+    this.expireIfIdle()
+    const setUp = this.keyRow() !== undefined
+    return {
+      setUp,
+      unlocked: this.key !== null,
+      locksAt: this.key ? new Date(this.lastUse + this.idleMs).toISOString() : null,
+      canManage: actor ? canManage(actor) : false,
+      canSetUp: actor ? actor.role === 'partner' && !setUp : false,
+      governmentSignIn: this.governmentSignIn()
+    }
+  }
+
+  setUp(passphrase: string, actor: Actor, audit: AuditFn): VaultStatus {
+    if (actor.role !== 'partner') throw new UserFacingError('Only a partner can set up the vault.')
+    if (this.keyRow()) throw new UserFacingError('The vault is already set up.')
+    if (typeof passphrase !== 'string' || passphrase.normalize('NFKC').length < MIN_PASSPHRASE_LENGTH) {
+      throw new UserFacingError(`Use a passphrase of at least ${MIN_PASSPHRASE_LENGTH} characters.`)
+    }
+    const kdf = this.opts.kdf ?? DEFAULT_KDF
+    const salt = randomBytes(16)
+    const key = deriveKey(passphrase, salt, kdf)
+    this.db
+      .prepare('INSERT INTO vault_keys (version, kdf, salt, n, r, p, verifier, created_by) VALUES (1, ?, ?, ?, ?, ?, ?, ?)')
+      .run('scrypt', salt.toString('base64'), kdf.N, kdf.r, kdf.p, verifierFor(key).toString('base64'), actor.name)
+    this.lock()
+    this.key = key
+    this.keyVersion = 1
+    this.lastUse = this.now()
+    audit('Vault set up', 'vault_keys', 1)
+    return this.status(actor)
+  }
+
+  unlock(passphrase: string, actor: Actor, audit: AuditFn): VaultStatus {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can unlock the vault.')
+    const row = this.keyRow()
+    if (!row) throw new UserFacingError('The vault hasn’t been set up yet.')
+    const now = this.now()
+    if (now < this.lockedOutUntil) {
+      throw new UserFacingError(`Too many wrong passphrases. Try again in ${Math.ceil((this.lockedOutUntil - now) / 1000)} seconds.`)
+    }
+    const key = deriveKey(String(passphrase ?? ''), Buffer.from(row.salt, 'base64'), { N: row.n, r: row.r, p: row.p })
+    const expected = Buffer.from(row.verifier, 'base64')
+    const actual = verifierFor(key)
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+      key.fill(0)
+      this.failures += 1
+      if (this.failures >= MAX_FAILURES) {
+        this.failures = 0
+        this.lockedOutUntil = now + LOCKOUT_MS
+      }
+      audit('Vault unlock failed', 'vault_keys', row.version)
+      throw new UserFacingError('That passphrase isn’t right.')
+    }
+    this.failures = 0
+    this.lock()
+    this.key = key
+    this.keyVersion = row.version
+    this.lastUse = now
+    audit('Vault unlocked', 'vault_keys', row.version)
+    return this.status(actor)
+  }
+
+  lock(): void {
+    if (this.key) this.key.fill(0)
+    this.key = null
+  }
+
+  // ── the practice switch for HMRC and GOV.UK sign-in ────────────────────────
+
+  governmentSignIn(): GovernmentSignInSetting {
+    const row = this.db.prepare('SELECT value FROM app_settings WHERE key = ?').get(GOVERNMENT_SIGN_IN_SETTING) as { value: string } | undefined
+    if (!row) return { allowed: false, changedBy: null, changedAt: null }
+    try {
+      const v = JSON.parse(row.value) as Partial<GovernmentSignInSetting>
+      return { allowed: v.allowed === true, changedBy: v.changedBy ?? null, changedAt: v.changedAt ?? null }
+    } catch {
+      return { allowed: false, changedBy: null, changedAt: null }
+    }
+  }
+
+  setGovernmentSignIn(allowed: boolean, actor: Actor, audit: AuditFn): VaultStatus {
+    if (actor.role !== 'partner') throw new UserFacingError('Only a partner can change this.')
+    const before = this.governmentSignIn()
+    const after: GovernmentSignInSetting = { allowed: allowed === true, changedBy: actor.name, changedAt: new Date(this.now()).toISOString() }
+    this.db.prepare('INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)').run(GOVERNMENT_SIGN_IN_SETTING, JSON.stringify(after))
+    audit(
+      after.allowed ? 'Switched on storing government sign-in details' : 'Switched off storing government sign-in details',
+      'app_settings',
+      GOVERNMENT_SIGN_IN_SETTING,
+      before,
+      after
+    )
+    return this.status(actor)
+  }
+
+  // ── client permission ──────────────────────────────────────────────────────
+
+  activeConsent(clientRef: string): CredentialConsent | null {
+    const row = this.db
+      .prepare('SELECT * FROM credential_consents WHERE client_ref = ? AND withdrawn_on IS NULL')
+      .get(clientRef) as ConsentRow | undefined
+    return row ? toConsent(row) : null
+  }
+
+  consentHistory(clientRef: string): CredentialConsent[] {
+    return (this.db
+      .prepare('SELECT * FROM credential_consents WHERE client_ref = ? ORDER BY recorded_at DESC, id DESC')
+      .all(clientRef) as ConsentRow[]).map(toConsent)
+  }
+
+  recordConsent(input: CredentialConsentInput, actor: Actor, audit: AuditFn, today: string = localToday()): CredentialConsent {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can record a client’s permission.')
+    const client = clientForActor(this.db, input.clientRef, actor)
+    if (!input.givenOn || !ISO_DATE.test(input.givenOn) || Number.isNaN(Date.parse(`${input.givenOn}T00:00:00Z`))) {
+      throw new UserFacingError('Enter the date the client gave permission.')
+    }
+    if (input.givenOn > today) throw new UserFacingError('The permission date is in the future.')
+    if (!(input.method in CONSENT_METHODS)) throw new UserFacingError('Say how the client gave permission.')
+    const existing = this.activeConsent(client.ref)
+    if (existing) throw new UserFacingError(`Permission is already on record (given ${existing.givenOn}). Withdraw it before recording a new one.`)
+    const res = this.db
+      .prepare('INSERT INTO credential_consents (client_ref, given_on, method, evidence, scope, notes, recorded_by) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(
+        client.ref,
+        input.givenOn,
+        input.method,
+        cleanText(input.evidence, 300, 'Where it is filed'),
+        cleanText(input.scope, 300, 'What it covers'),
+        cleanText(input.notes, 2000, 'Notes'),
+        actor.name
+      )
+    const consent = toConsent(this.db.prepare('SELECT * FROM credential_consents WHERE id = ?').get(Number(res.lastInsertRowid)) as ConsentRow)
+    audit('Recorded permission to hold sign-in details', 'credential_consents', consent.id, null, consent)
+    return consent
+  }
+
+  /**
+   * Ends the client's permission and deletes their stored HMRC and GOV.UK sign-ins.
+   * Needs no key, so it works while the vault is locked.
+   */
+  withdrawConsent(clientRef: string, actor: Actor, audit: AuditFn, today: string = localToday()): { removedEntries: number } {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can withdraw a client’s permission.')
+    const client = clientForActor(this.db, clientRef, actor)
+    const active = this.activeConsent(client.ref)
+    if (!active) throw new UserFacingError('No permission is on record for this client.')
+    return this.db.transaction((): { removedEntries: number } => {
+      this.db.prepare('UPDATE credential_consents SET withdrawn_on = ?, withdrawn_by = ? WHERE id = ?').run(today, actor.name, active.id)
+      const removed = this.db
+        .prepare("DELETE FROM credential_vault WHERE client_ref = ? AND kind = 'government_sign_in'")
+        .run(client.ref).changes
+      audit('Withdrew permission to hold sign-in details', 'credential_consents', active.id, active, {
+        withdrawn_on: today,
+        removed_government_sign_ins: removed
+      })
+      return { removedEntries: removed }
+    })()
+  }
+
+  // ── stored logins ──────────────────────────────────────────────────────────
+
+  private entriesWithSecrets(rows: EntryRow[]): VaultEntry[] {
+    if (rows.length === 0) return []
+    const secrets = this.db
+      .prepare(`SELECT * FROM credential_secrets WHERE credential_id IN (${rows.map(() => '?').join(', ')}) ORDER BY field, label`)
+      .all(...rows.map((r) => r.id)) as SecretRow[]
+    return rows.map((r) => ({
+      id: r.id,
+      owner: r.owner,
+      clientRef: r.client_ref,
+      kind: r.kind,
+      platform: r.platform,
+      loginId: r.login_id,
+      url: r.url,
+      notes: r.notes,
+      secrets: secrets.filter((s) => s.credential_id === r.id).map(toSecretInfo),
+      updatedAt: r.updated_at
+    }))
+  }
+
+  list(scope: { clientRef?: string; practice?: boolean }, actor: Actor): VaultEntry[] {
+    if (scope.practice) {
+      if (!canManage(actor)) return []
+      return this.entriesWithSecrets(
+        this.db.prepare("SELECT * FROM credential_vault WHERE owner = 'practice' ORDER BY kind, platform, login_id").all() as EntryRow[]
+      )
+    }
+    if (!scope.clientRef) return []
+    const client = clientForActor(this.db, scope.clientRef, actor)
+    return this.entriesWithSecrets(
+      this.db
+        .prepare("SELECT * FROM credential_vault WHERE owner = 'client' AND client_ref = ? ORDER BY kind, platform, login_id")
+        .all(client.ref) as EntryRow[]
+    )
+  }
+
+  save(input: VaultEntryInput, actor: Actor, audit: AuditFn): VaultEntry {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can change stored logins.')
+    const platform = cleanText(input.platform, 120, 'Platform')
+    if (!platform) throw new UserFacingError('Say which platform the login is for.')
+    const loginId = cleanText(input.loginId, 200, 'Login ID')
+    const url = cleanText(input.url, 500, 'Web address')
+    const notes = cleanText(input.notes, 2000, 'Notes')
+    if (url && !/^https:\/\//i.test(url)) throw new UserFacingError('Use the portal’s https:// address.')
+
+    let clientRef: string | null = null
+    if (input.owner === 'client') {
+      if (!input.clientRef) throw new UserFacingError('Choose the client this login belongs to.')
+      clientRef = clientForActor(this.db, input.clientRef, actor).ref
+    } else if (input.owner !== 'practice') {
+      throw new UserFacingError('Unknown owner.')
+    }
+
+    const secrets = (input.secrets ?? []).map((s) => {
+      if (!(s.field in SECRET_FIELDS)) throw new UserFacingError('Unknown kind of secret.')
+      const label = (s.label ?? '').trim()
+      if (label.length > 60) throw new UserFacingError('A secret’s label is longer than 60 characters.')
+      if (typeof s.value !== 'string' || s.value.length === 0) throw new UserFacingError(`Enter the ${SECRET_FIELDS[s.field].toLowerCase()}.`)
+      if (s.value.length > MAX_SECRET_LENGTH) throw new UserFacingError(`The ${SECRET_FIELDS[s.field].toLowerCase()} is too long.`)
+      return { field: s.field, label, value: s.value }
+    })
+
+    const kind: EntryRow['kind'] = isGovernmentSignIn(platform) || (url !== null && isGovernmentSignIn(url)) ? 'government_sign_in' : 'other'
+    const before = input.id ? (this.db.prepare('SELECT * FROM credential_vault WHERE id = ?').get(input.id) as EntryRow | undefined) : undefined
+    if (input.id && !before) throw new UserFacingError('That login no longer exists.')
+    if (before && (before.owner !== input.owner || before.client_ref !== clientRef)) throw new UserFacingError('A login can’t be moved to another owner.')
+
+    const becomesGovernment = kind === 'government_sign_in' && (!before || before.kind !== kind || secrets.length > 0)
+    if (becomesGovernment) {
+      if (!this.governmentSignIn().allowed) throw new UserFacingError(GOVERNMENT_SIGN_IN_SWITCH_OFF)
+      if (clientRef !== null && !this.activeConsent(clientRef)) throw new UserFacingError(GOVERNMENT_SIGN_IN_NEEDS_PERMISSION)
+    }
+    const key = secrets.length > 0 ? this.requireKey() : null
+
+    const after = this.db.transaction((): EntryRow => {
+      let id: number
+      if (before) {
+        this.db
+          .prepare("UPDATE credential_vault SET kind = ?, platform = ?, login_id = ?, url = ?, notes = ?, updated_at = datetime('now') WHERE id = ?")
+          .run(kind, platform, loginId, url, notes, before.id)
+        id = before.id
+      } else {
+        id = Number(
+          this.db
+            .prepare('INSERT INTO credential_vault (owner, client_ref, kind, platform, login_id, url, notes) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            .run(input.owner, clientRef, kind, platform, loginId, url, notes).lastInsertRowid
+        )
+      }
+      for (const s of secrets) {
+        const sealed = this.seal(key as Buffer, secretAad(id, s.field, s.label), s.value)
+        this.db
+          .prepare(
+            `INSERT INTO credential_secrets (credential_id, field, label, secret_ct, secret_iv, secret_tag, key_version)
+             VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT (credential_id, field, label) DO UPDATE SET
+               secret_ct = excluded.secret_ct, secret_iv = excluded.secret_iv, secret_tag = excluded.secret_tag,
+               key_version = excluded.key_version, updated_at = datetime('now')`
+          )
+          .run(id, s.field, s.label, sealed.ct, sealed.iv, sealed.tag, this.keyVersion)
+      }
+      const row = this.db.prepare('SELECT * FROM credential_vault WHERE id = ?').get(id) as EntryRow
+      audit(before ? 'Updated stored login' : 'Added stored login', 'credential_vault', id, auditView(before), {
+        ...auditView(row),
+        secrets_changed: secrets.map((s) => (s.label ? `${s.field}:${s.label}` : s.field))
+      })
+      return row
+    })()
+    return this.entriesWithSecrets([after])[0]
+  }
+
+  private secretWithAccount(secretId: number): (SecretRow & { owner: EntryRow['owner']; client_ref: string | null; kind: EntryRow['kind']; platform: string }) | undefined {
+    return this.db
+      .prepare(
+        `SELECT s.*, v.owner, v.client_ref, v.kind, v.platform FROM credential_secrets s
+         JOIN credential_vault v ON v.id = s.credential_id WHERE s.id = ?`
+      )
+      .get(secretId) as (SecretRow & { owner: EntryRow['owner']; client_ref: string | null; kind: EntryRow['kind']; platform: string }) | undefined
+  }
+
+  /** Returns the secret. A client's government sign-in records whether the client was present. */
+  reveal(secretId: number, options: { clientPresent?: boolean }, actor: Actor, audit: AuditFn): string {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can see stored secrets.')
+    const key = this.requireKey()
+    const row = this.secretWithAccount(secretId)
+    if (!row) throw new UserFacingError('That secret no longer exists.')
+    if (row.owner === 'client' && row.client_ref) clientForActor(this.db, row.client_ref, actor)
+    if (row.key_version !== this.keyVersion) throw new UserFacingError('This secret was stored under a different vault key.')
+    const value = this.open(key, secretAad(row.credential_id, row.field, row.label), { ct: row.secret_ct, iv: row.secret_iv, tag: row.secret_tag })
+    const detail: Record<string, unknown> = { platform: row.platform, kind: row.kind, owner: row.owner, client_ref: row.client_ref, field: row.field, label: row.label || undefined }
+    if (row.owner === 'client' && row.kind === 'government_sign_in') detail.client_present = options?.clientPresent === true
+    if (value === null) {
+      audit('Stored secret failed to open', 'credential_secrets', secretId, null, detail)
+      throw new UserFacingError('This secret can’t be opened: the stored copy has been changed or damaged.')
+    }
+    this.db
+      .prepare("UPDATE credential_secrets SET reveal_count = reveal_count + 1, last_revealed_at = datetime('now'), last_revealed_by = ? WHERE id = ?")
+      .run(actor.name, secretId)
+    audit('Revealed stored secret', 'credential_secrets', secretId, null, detail)
+    return value
+  }
+
+  removeSecret(secretId: number, actor: Actor, audit: AuditFn): void {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can change stored logins.')
+    const row = this.secretWithAccount(secretId)
+    if (!row) throw new UserFacingError('That secret no longer exists.')
+    if (row.owner === 'client' && row.client_ref) clientForActor(this.db, row.client_ref, actor)
+    this.db.prepare('DELETE FROM credential_secrets WHERE id = ?').run(secretId)
+    audit('Removed stored secret', 'credential_secrets', secretId, { platform: row.platform, client_ref: row.client_ref, field: row.field, label: row.label || undefined }, null)
+  }
+
+  remove(entryId: number, actor: Actor, audit: AuditFn): void {
+    if (!canManage(actor)) throw new UserFacingError('Only partners and managers can change stored logins.')
+    const row = this.db.prepare('SELECT * FROM credential_vault WHERE id = ?').get(entryId) as EntryRow | undefined
+    if (!row) throw new UserFacingError('That login no longer exists.')
+    if (row.owner === 'client' && row.client_ref) clientForActor(this.db, row.client_ref, actor)
+    this.db.prepare('DELETE FROM credential_vault WHERE id = ?').run(entryId)
+    audit('Removed stored login', 'credential_vault', entryId, auditView(row), null)
+  }
+
+  // ── postal authorisation codes ─────────────────────────────────────────────
+
+  /** Stores (or with null, clears) the code HMRC posted to the client. Staff: their own clients. */
+  setAuthorisationCode(authorisationId: number, code: string | null, actor: Actor, audit: AuditFn): { hasCode: boolean } {
+    const row = this.db.prepare('SELECT id, client_ref, service FROM agent_authorisations WHERE id = ?').get(authorisationId) as
+      | { id: number; client_ref: string; service: string }
+      | undefined
+    if (!row) throw new UserFacingError('That authorisation no longer exists.')
+    clientForActor(this.db, row.client_ref, actor)
+    const value = (code ?? '').trim()
+    if (!value) {
+      this.db.prepare('UPDATE agent_authorisations SET code_ct = NULL, code_iv = NULL, code_tag = NULL, code_key_version = NULL WHERE id = ?').run(row.id)
+      audit('Cleared authorisation code', 'agent_authorisations', row.id, null, { client_ref: row.client_ref, service: row.service })
+      return { hasCode: false }
+    }
+    if (value.length > 40) throw new UserFacingError('That code is longer than HMRC codes are.')
+    const sealed = this.seal(this.requireKey(), codeAad(row.id), value)
+    this.db
+      .prepare("UPDATE agent_authorisations SET code_ct = ?, code_iv = ?, code_tag = ?, code_key_version = ?, updated_at = datetime('now') WHERE id = ?")
+      .run(sealed.ct, sealed.iv, sealed.tag, this.keyVersion, row.id)
+    audit('Stored authorisation code', 'agent_authorisations', row.id, null, { client_ref: row.client_ref, service: row.service })
+    return { hasCode: true }
+  }
+
+  revealAuthorisationCode(authorisationId: number, actor: Actor, audit: AuditFn): string {
+    const row = this.db
+      .prepare('SELECT id, client_ref, service, code_ct, code_iv, code_tag, code_key_version FROM agent_authorisations WHERE id = ?')
+      .get(authorisationId) as
+      | { id: number; client_ref: string; service: string; code_ct: string | null; code_iv: string | null; code_tag: string | null; code_key_version: number | null }
+      | undefined
+    if (!row) throw new UserFacingError('That authorisation no longer exists.')
+    clientForActor(this.db, row.client_ref, actor)
+    if (!row.code_ct || !row.code_iv || !row.code_tag) throw new UserFacingError('No code is stored for this authorisation.')
+    const key = this.requireKey()
+    if (row.code_key_version !== this.keyVersion) throw new UserFacingError('This code was stored under a different vault key.')
+    const value = this.open(key, codeAad(row.id), { ct: row.code_ct, iv: row.code_iv, tag: row.code_tag })
+    if (value === null) throw new UserFacingError('This code can’t be opened: the stored copy has been changed or damaged.')
+    audit('Revealed authorisation code', 'agent_authorisations', row.id, null, { client_ref: row.client_ref, service: row.service })
+    return value
+  }
+}

@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 3231,
+  "old_string": "/** Everything held about one client, register by register. */\nexport function clientFile(db: Database, actor: Actor, clientRef: string): ClientFile {\n  const client = clientForActor(db, clientRef, actor)\n  const o = db.prepare('SELECT * FROM v_client_overview WHERE ref = ?').get(client.ref) as OverviewRow\n  const overview: ClientOverview = {\n    ref: o.ref,\n    name: o.client_name,\n    category: o.client_category,\n    status: o.status,\n    companyStatus: o.company_status,\n    assignedTo: o.assigned_to,\n    activeServices: o.active_services,\n    contacts: o.contacts,\n    openDeadlines: o.open_deadlines,\n    overdueDeadlines: o.overdue_deadlines,\n    nextDueDate: o.next_due_date,",
+  "new_string": "/**\n * Everything held about one client, register by register. Its deadline figures\n * come from the one open-deadline list (records/deadlines.ts), so they agree\n * with the Deadlines panel below them, Home and Compliance → Deadlines.\n */\nexport function clientFile(db: Database, actor: Actor, clientRef: string, today: string = localDate()): ClientFile {\n  const client = clientForActor(db, clientRef, actor)\n  const o = db.prepare('SELECT * FROM v_client_overview WHERE ref = ?').get(client.ref) as OverviewRow\n  const open = openDeadlines(db, actor, { clientRef: client.ref, withinDays: 3650 }, today)\n  const overview: ClientOverview = {\n    ref: o.ref,\n    name: o.client_name,\n    category: o.client_category,\n    status: o.status,\n    companyStatus: o.company_status,\n    assignedTo: o.assigned_to,\n    activeServices: o.active_services,\n    contacts: o.contacts,\n    openDeadlines: open.length,\n    overdueDeadlines: open.filter((d) => d.days < 0).length,\n    nextDueDate: open.find((d) => d.days >= 0)?.due_date ?? null,"
+ },
+ {
+  "seq": 3232,
+  "old_string": "import { canManage, clientForActor, UserFacingError, type Actor } from '../references/service'",
+  "new_string": "import { canManage, clientForActor, UserFacingError, type Actor } from '../references/service'\nimport { localDate } from '../records/common'\nimport { openDeadlines } from '../records/deadlines'"
+ }
+]

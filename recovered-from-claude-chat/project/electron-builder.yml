@@ -1,0 +1,113 @@
+# AETERNA CRM — packaging. This file is the only packaging configuration:
+# package.json has no "build" section (electron-builder would read that instead
+# and ignore this file, fuses included).
+#
+# Windows is built on Windows (or the release workflow's Windows runner): the
+# database module is native and must be built for the platform it runs on.
+# docs/RELEASING.md has the steps.
+appId: uk.co.bitopi.aeternacrm
+productName: AETERNA CRM
+copyright: Copyright © 2026 Bitopi
+directories:
+  buildResources: build
+  output: release
+
+# Only the built app goes in. Everything else — sources, tests, the vendor's
+# licence tool, documents — stays out. package.json and the production
+# node_modules are added by electron-builder.
+files:
+  - out/**/*
+  - resources/**/*
+
+asar: true
+# Native modules must sit outside the archive so the operating system can load them.
+asarUnpack:
+  - '**/*.{node,dll,dylib,so}'
+  - '**/node_modules/better-sqlite3-multiple-ciphers/**/*'
+
+# The app is in British English (it starts with --lang=en-GB): leave out
+# Chromium's other 50-odd languages, about 40 MB.
+electronLanguages:
+  - en-GB
+  - en-US
+
+# Manual updates: each release is a full installer from the download page.
+# Nothing is published, and no update feed is written.
+publish: null
+
+# Anti-tamper: electron-builder flips these switches in the packaged binary.
+electronFuses:
+  runAsNode: false                             # the app's binary can't be used to run other code as Node
+  enableNodeOptionsEnvironmentVariable: false  # no NODE_OPTIONS injection (e.g. --require a patch)
+  enableNodeCliInspectArguments: false         # no --inspect debugger attach
+  enableEmbeddedAsarIntegrityValidation: true  # Windows and macOS: an edited app.asar refuses to start
+  onlyLoadAppFromAsar: true                    # only app.asar is loaded — never an unpacked, edited app folder
+  resetAdHocDarwinSignature: true              # Apple Silicon: re-sign ad hoc after flipping fuses, or unsigned builds won't launch
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  artifactName: AETERNA-CRM-${version}-setup.${ext}
+  # Signing is ready but off: with no certificate the app and installer are
+  # unsigned, and Windows shows SmartScreen's "More info → Run anyway" (see
+  # docs/INSTALLING.md). Given WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD (the
+  # release workflow passes them only when the secrets exist), electron-builder
+  # signs both, with nothing else to change here.
+
+nsis:
+  # The installer with pages: welcome, who it is for (just me by default, so no
+  # administrator is needed), where, then a finish page that can start the app.
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  menuCategory: false
+  runAfterFinish: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerSidebar: build/installerSidebar.bmp
+  uninstallerSidebar: build/uninstallerSidebar.bmp
+  installerHeader: build/installerHeader.bmp
+  # Uninstalling keeps the practice's data unless "Also remove my data" is
+  # ticked and confirmed; an upgrade never removes it (build/installer.nsh).
+  deleteAppDataOnUninstall: false
+  include: build/installer.nsh
+  # Full installers only: no differential update files.
+  differentialPackage: false
+  artifactName: AETERNA-CRM-${version}-setup.${ext}
+
+mac:
+  # Configured, not built yet: needs an Apple Developer account. Signing comes
+  # from CSC_LINK and CSC_KEY_PASSWORD (a Developer ID Application certificate);
+  # notarisation from APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID
+  # (or an App Store Connect API key). Without them the build is unsigned.
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  icon: build/icon.icns
+  artifactName: AETERNA-CRM-${version}-${arch}.${ext}
+  category: public.app-category.business
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  darkModeSupport: true
+
+dmg:
+  title: AETERNA CRM ${version}
+
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: build/icon.png
+  maintainer: Bitopi <info@bitopi.co.uk>
+  category: Office

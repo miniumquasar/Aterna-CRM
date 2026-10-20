@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 1703,
+  "old_string": "    expect(readdirSync(state.dir).filter((f) => /corrupt|damaged/.test(f))).toEqual([])\n    expect(state.errors[0]?.[0]).toMatch(/could not be opened/)\n  })",
+  "new_string": "    expect(readdirSync(state.dir).filter((f) => /corrupt|damaged/.test(f))).toEqual([])\n    // No blocking box before the window: the sign-in screen explains it and unlocks with the recovery sheet.\n    expect(state.errors).toEqual([])\n    expect(h.notice).toMatch(/recovery sheet/)\n  })"
+ }
+]

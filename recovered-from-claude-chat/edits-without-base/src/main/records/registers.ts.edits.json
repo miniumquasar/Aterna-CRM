@@ -1,0 +1,17 @@
+[
+ {
+  "seq": 3203,
+  "old_string": "/** \"2025/26\", \"2025-2026\" → \"2025-26\"; refuses years that don't follow on. */\nfunction taxYearOrNull(value: unknown): string | null {",
+  "new_string": "/** \"2025/26\", \"2025-2026\" → \"2025-26\"; refuses years that don't follow on. */\nexport function taxYearOrNull(value: unknown): string | null {"
+ },
+ {
+  "seq": 3204,
+  "old_string": "// ── Registers shown read-only for now ────────────────────────────────────────",
+  "new_string": "// ── Registers changed in client-registers.ts ─────────────────────────────────"
+ },
+ {
+  "seq": 3289,
+  "old_string": "/** Links to other clients. Staff don't see the names of clients that aren't theirs. */",
+  "new_string": "/** What the client earns from, current ones first. Kept per client, with or without a Self Assessment registration. */\nexport function listIncomeSources(db: Database, actor: Actor, clientRef: unknown): ClientIncomeSource[] {\n  const client = clientForActor(db, refArg(clientRef), actor)\n  return db.prepare('SELECT * FROM client_income_sources WHERE client_ref = ? ORDER BY active DESC, source_type, detail').all(client.ref) as ClientIncomeSource[]\n}\n\n/** Links to other clients. Staff don't see the names of clients that aren't theirs. */"
+ }
+]

@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 2760,
+  "old_string": "export function writeRefusal(): string | null {\n  const refused = guards.find((g) => !g.allows())\n  return refused ? refused.reason() : null\n}\n",
+  "new_string": "export function writeRefusal(): string | null {\n  const refused = guards.find((g) => !g.allows())\n  return refused ? refused.reason() : null\n}\n\n/**\n * Why a change would not be saved right now (the database is locked, or held\n * in memory), or null. For security housekeeping that must still work when\n * the licence has run out — changing the vault passphrase — but must never\n * look done when it would vanish at the next start.\n */\nexport function storageRefusal(): string | null {\n  const storage = guards.find((g) => g.code === STORAGE_READ_ONLY_CODE)\n  return storage && !storage.allows() ? storage.reason() : null\n}\n"
+ }
+]

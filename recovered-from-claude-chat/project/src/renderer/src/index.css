@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   AETERNA global styles
+   ------------------------------------------------------------------ */
+
+@layer base {
+  /*
+   * The colour names the screens use, as "R G B" channels (tailwind.config.ts
+   * turns each into rgb(var(--name) / <alpha>), so bg-primary/10 works).
+   * Each is the solid equivalent of the glass look on the void background:
+   * card ≈ white 4%, muted ≈ white 6%, accent ≈ white 8%, border ≈ white 10%.
+   */
+  :root {
+    color-scheme: dark;
+    --background: 5 0 7;
+    --foreground: 230 229 231;
+    --card: 15 10 17;
+    --card-foreground: 230 229 231;
+    --popover: 13 10 18;
+    --popover-foreground: 230 229 231;
+    --primary: 0 245 232;
+    --primary-foreground: 5 0 7;
+    --secondary: 25 20 27;
+    --secondary-foreground: 230 229 231;
+    --muted: 20 15 22;
+    --muted-foreground: 140 137 142;
+    --accent: 25 20 27;
+    --accent-foreground: 240 239 241;
+    --destructive: 244 63 94;
+    --destructive-foreground: 255 255 255;
+    --danger: 255 77 109;
+    --border: 32 27 34;
+    --input: 42 37 44;
+    --ring: 0 245 232;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont,
+                 'Segoe UI', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #050007;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Native controls (select lists, date pickers) follow the dark theme. */
+  select, input, textarea {
+    color-scheme: dark;
+  }
+  option {
+    background: #0d0a12;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* High-contrast focus ring for keyboard users only */
+  :focus-visible {
+    outline: 2px solid #00F5E8;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Custom scrollbar — thin, cyan on hover */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 245, 232, 0.3); }
+}
+
+/* Respect prefers-reduced-motion, and Visual effects: Lite (App.tsx sets data-motion="none" for both) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-motion='none'] *, html[data-motion='none'] *::before, html[data-motion='none'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

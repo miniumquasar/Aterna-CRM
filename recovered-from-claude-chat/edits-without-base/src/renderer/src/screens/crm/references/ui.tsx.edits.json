@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 3321,
+  "old_string": "export const inputClass =\n  'w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/85 placeholder:text-white/30 focus:border-aether/40 focus:outline-none disabled:opacity-50'",
+  "new_string": "export const inputClass =\n  'w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/85 placeholder:text-white/50 focus:border-aether/40 focus:outline-none disabled:opacity-50'\n\n/** A box that sits beside other things in a row, with its own width (add w-40, say): inputClass without w-full. */\nexport const inlineInputClass = inputClass.replace('w-full ', '')"
+ }
+]

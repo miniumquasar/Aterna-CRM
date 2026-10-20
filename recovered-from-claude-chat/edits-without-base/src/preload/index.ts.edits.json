@@ -1,0 +1,17 @@
+[
+ {
+  "seq": 2342,
+  "old_string": "    ipcRenderer.invoke('ch:sync-client', clientId, companyNumber),\n  bgSyncClients: () => ipcRenderer.invoke('ch:bg-sync-clients'),",
+  "new_string": "    ipcRenderer.invoke('ch:sync-client', clientId, companyNumber),"
+ },
+ {
+  "seq": 3214,
+  "old_string": "    getAliases: (clientRef) => ipcRenderer.invoke('registers:aliases', clientRef),",
+  "new_string": "    getAliases: (clientRef) => ipcRenderer.invoke('registers:aliases', clientRef),\n    savePayrollScheme: (input) => ipcRenderer.invoke('registers:save-payroll', input),\n    deletePayrollScheme: (id) => ipcRenderer.invoke('registers:delete-payroll', id),\n    savePayrollYear: (input) => ipcRenderer.invoke('registers:save-payroll-year', input),\n    deletePayrollYear: (id) => ipcRenderer.invoke('registers:delete-payroll-year', id),\n    savePensionScheme: (input) => ipcRenderer.invoke('registers:save-pension', input),\n    deletePensionScheme: (id) => ipcRenderer.invoke('registers:delete-pension', id),\n    saveSaRegistration: (input) => ipcRenderer.invoke('registers:save-sa', input),\n    deleteSaRegistration: (id) => ipcRenderer.invoke('registers:delete-sa', id),\n    saveIncomeSource: (input) => ipcRenderer.invoke('registers:save-income', input),\n    deleteIncomeSource: (id) => ipcRenderer.invoke('registers:delete-income', id),\n    saveRelationship: (input) => ipcRenderer.invoke('registers:save-relationship', input),\n    deleteRelationship: (id, clientRef) => ipcRenderer.invoke('registers:delete-relationship', id, clientRef),\n    saveAlias: (input) => ipcRenderer.invoke('registers:save-alias', input),\n    deleteAlias: (id) => ipcRenderer.invoke('registers:delete-alias', id),"
+ },
+ {
+  "seq": 3292,
+  "old_string": "    getSaRegistration: (clientRef) => ipcRenderer.invoke('registers:sa', clientRef),",
+  "new_string": "    getSaRegistration: (clientRef) => ipcRenderer.invoke('registers:sa', clientRef),\n    getIncomeSources: (clientRef) => ipcRenderer.invoke('registers:income', clientRef),"
+ }
+]

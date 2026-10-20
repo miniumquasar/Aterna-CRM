@@ -1,0 +1,42 @@
+[
+ {
+  "seq": 2324,
+  "old_string": "  const [apiKeyInput, setApiKeyInput] = useState('')\n  const [showKey, setShowKey] = useState(false)",
+  "new_string": "  const [apiKeyInput, setApiKeyInput] = useState('')\n  const [streamKeyInput, setStreamKeyInput] = useState('')\n  const [showKey, setShowKey] = useState(false)"
+ },
+ {
+  "seq": 2325,
+  "old_string": "      if (apiKeyInput)             payload.apiKey             = apiKeyInput",
+  "new_string": "      if (apiKeyInput)             payload.apiKey             = apiKeyInput\n      if (streamKeyInput)          payload.chStreamKey        = streamKeyInput"
+ },
+ {
+  "seq": 2326,
+  "old_string": "      setApiKeyInput('')\n      setHmrcClientIdInput('')",
+  "new_string": "      setApiKeyInput('')\n      setStreamKeyInput('')\n      setHmrcClientIdInput('')"
+ },
+ {
+  "seq": 2327,
+  "old_string": "                <li>Copy the generated <strong>API key</strong> and paste above</li>\n                <li>For Streaming, ensure the <strong>Stream</strong> endpoint is enabled on the key</li>\n              </ol>\n              <p className=\"text-muted-foreground\">Stored encrypted (AES-256-GCM) in this practice's database, never as plain text.</p>\n            </div>\n          </div>\n",
+  "new_string": "                <li>Copy the generated <strong>API key</strong> and paste above</li>\n                <li>The live stream (optional) needs a separate <strong>streaming key</strong>: the REST key doesn’t work for it</li>\n              </ol>\n              <p className=\"text-muted-foreground\">Stored encrypted (AES-256-GCM) in this practice's database, never as plain text.</p>\n            </div>\n          </div>\n\n          <div className=\"space-y-1\">\n            <Toggle\n              label=\"Check each client’s company at Companies House once a day\"\n              checked={settings.chDailyCheck !== false}\n              onChange={(v) => setSettings(s => s ? { ...s, chDailyCheck: v } : s)}\n            />\n            <p className=\"text-xs text-muted-foreground\">\n              Strike-off notices, status, accounts and confirmation statements overdue there, new filings and a new registered office, for every client with a company number. About one company a second, in the background; the accounts and confirmation statement due dates on the client record are kept up to date. Changes appear under Activity.\n            </p>\n          </div>\n"
+ },
+ {
+  "seq": 2328,
+  "old_string": "          {settings.apiMode === 'streaming' && (\n            <div>\n              <label className=\"text-xs font-medium text-muted-foreground block mb-2\">\n                Active Streams",
+  "new_string": "          {settings.apiMode === 'streaming' && (\n            <div>\n              <label className=\"text-xs font-medium text-muted-foreground block mb-1.5\" htmlFor=\"ch-stream-key\">Streaming key</label>\n              <input\n                id=\"ch-stream-key\"\n                type=\"password\"\n                value={streamKeyInput || (settings.chStreamKey ?? '')}\n                onChange={(e) => setStreamKeyInput(e.target.value)}\n                placeholder={settings.chStreamKey ? 'Enter a new streaming key to replace it…' : 'Paste the streaming key…'}\n                className=\"w-full h-9 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring\"\n                data-selectable\n                data-testid=\"ch-stream-key\"\n              />\n              <p className=\"text-xs text-muted-foreground mt-1.5 mb-3\">\n                Companies House issues streaming keys separately from REST API keys, and the two aren’t interchangeable. Every change on the register arrives; the app keeps only those about your clients.\n              </p>\n              <label className=\"text-xs font-medium text-muted-foreground block mb-2\">\n                Active Streams"
+ },
+ {
+  "seq": 2329,
+  "old_string": "                          onChange={e => {\n                            const current = settings.streamEndpoints ?? DEFAULT_ENDPOINT_PATHS\n                            const next = e.target.checked\n                              ? [...current, path]\n                              : current.filter(ep => ep !== path)\n                            setSettings(s => s ? { ...s, streamEndpoints: next as CHStreamEndpoint[] } : s)\n                          }}",
+  "new_string": "                          onChange={e => {\n                            const current = settings.streamEndpoints ?? DEFAULT_ENDPOINT_PATHS\n                            const next = (e.target.checked\n                              ? [...current, path]\n                              : current.filter(ep => ep !== path)) as CHStreamEndpoint[]\n                            // Saved at once, and the stream follows the new choice.\n                            void window.api.setStreamEndpoints(next).then((r) => {\n                              if (r.success) setSettings(s => s ? { ...s, streamEndpoints: next } : s)\n                              else tell(false, (r as { error?: string }).error || 'The streams couldn’t be changed.')\n                            })\n                          }}"
+ },
+ {
+  "seq": 2330,
+  "old_string": "      <Section icon={<Bell size={16} />} title=\"Deadline Notifications\">\n        <div className=\"space-y-3\">\n          <Toggle\n            label=\"Show desktop notifications\"\n            checked={settings.notificationsEnabled}\n            onChange={(v) => setSettings(s => s ? { ...s, notificationsEnabled: v } : s)}\n          />\n          <div>\n            <label className=\"text-xs font-medium text-muted-foreground block mb-1.5\">\n              Alert days before deadline\n            </label>",
+  "new_string": "      <Section icon={<Bell size={16} />} title=\"Notifications\">\n        <div className=\"space-y-3\">\n          <p className=\"text-xs text-muted-foreground\">\n            Deadlines, Companies House changes, follow-ups, tasks, backups and the licence are listed under Activity → Notifications and on the bell, for each person.\n          </p>\n          <Toggle\n            label=\"Also show desktop notifications when the app isn’t in front\"\n            checked={settings.notificationsEnabled}\n            onChange={(v) => setSettings(s => s ? { ...s, notificationsEnabled: v } : s)}\n          />\n          <div>\n            <label className=\"text-xs font-medium text-muted-foreground block mb-1.5\">\n              Tell people about deadlines this many days ahead\n            </label>"
+ },
+ {
+  "seq": 2332,
+  "old_string": "                              else tell(false, (r as { error?: string }).error || 'The streams couldn’t be changed.')",
+  "new_string": "                              else tell(false, r.error || 'The streams couldn’t be changed.')"
+ }
+]

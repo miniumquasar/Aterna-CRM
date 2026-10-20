@@ -1,0 +1,27 @@
+[
+ {
+  "seq": 3212,
+  "old_string": "import { actor, result } from './session'\nimport { checkNotificationsSoon } from '../services/notifier'",
+  "new_string": "import {\n  deleteAlias, deleteIncomeSource, deletePayrollScheme, deletePayrollYear, deletePensionScheme, deleteRelationship, deleteSaRegistration, saveAlias,\n  saveIncomeSource, savePayrollScheme, savePayrollYear, savePensionScheme, saveRelationship, saveSaRegistration\n} from '../records/client-registers'\nimport { actor, result } from './session'\nimport { checkNotificationsSoon } from '../services/notifier'\n\n/** A handler that changes something and replies with nothing. */\nconst done = (fn: () => void) => (): null => {\n  fn()\n  return null\n}"
+ },
+ {
+  "seq": 3213,
+  "old_string": "  ipcMain.handle('registers:aliases', (_e, ref: unknown) => result('registers', () => listAliases(getDb(), actor(), ref)))",
+  "new_string": "  ipcMain.handle('registers:aliases', (_e, ref: unknown) => result('registers', () => listAliases(getDb(), actor(), ref)))\n\n  // Changed from the Client file (Level 4F).\n  ipcMain.handle('registers:save-payroll', (_e, input: unknown) => result('registers', () => savePayrollScheme(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-payroll', (_e, id: unknown) => result('registers', done(() => deletePayrollScheme(getDb(), actor(), id))))\n  ipcMain.handle('registers:save-payroll-year', (_e, input: unknown) => result('registers', () => savePayrollYear(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-payroll-year', (_e, id: unknown) => result('registers', done(() => deletePayrollYear(getDb(), actor(), id))))\n  // A pension's duties start date moves its re-declaration deadlines, so notifications are checked again.\n  ipcMain.handle('registers:save-pension', (_e, input: unknown) =>\n    result('registers', () => {\n      const saved = savePensionScheme(getDb(), actor(), input)\n      checkNotificationsSoon()\n      return saved\n    })\n  )\n  ipcMain.handle('registers:delete-pension', (_e, id: unknown) =>\n    result('registers', () => {\n      const removed = deletePensionScheme(getDb(), actor(), id)\n      checkNotificationsSoon()\n      return removed\n    })\n  )\n  ipcMain.handle('registers:save-sa', (_e, input: unknown) => result('registers', () => saveSaRegistration(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-sa', (_e, id: unknown) => result('registers', done(() => deleteSaRegistration(getDb(), actor(), id))))\n  ipcMain.handle('registers:save-income', (_e, input: unknown) => result('registers', () => saveIncomeSource(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-income', (_e, id: unknown) => result('registers', done(() => deleteIncomeSource(getDb(), actor(), id))))\n  ipcMain.handle('registers:save-relationship', (_e, input: unknown) => result('registers', () => saveRelationship(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-relationship', (_e, id: unknown, clientRef: unknown) =>\n    result('registers', done(() => deleteRelationship(getDb(), actor(), id, clientRef)))\n  )\n  ipcMain.handle('registers:save-alias', (_e, input: unknown) => result('registers', () => saveAlias(getDb(), actor(), input)))\n  ipcMain.handle('registers:delete-alias', (_e, id: unknown) => result('registers', done(() => deleteAlias(getDb(), actor(), id))))"
+ },
+ {
+  "seq": 3215,
+  "old_string": " * registers.ts — the practice registers worked on from the Client file:\n * contacts, deadlines and the issues found in the data, and the registers shown\n * beside them. Every reply is { ok, data } or { ok: false, error }; the rules\n * (staff see their own clients', every change audited in the same transaction)\n * live in ../records/registers.ts.",
+  "new_string": " * registers.ts — the practice registers worked on from the Client file:\n * contacts, deadlines and the issues found in the data; PAYE schemes, workplace\n * pensions, the Self Assessment registration and sources of income, links\n * between clients and other names. Every reply is { ok, data } or { ok: false,\n * error }; the rules (staff see their own clients', every change audited in the\n * same transaction) live in ../records/registers.ts and\n * ../records/client-registers.ts."
+ },
+ {
+  "seq": 3290,
+  "old_string": "  ipcMain.handle('registers:sa', (_e, ref: unknown) => result('registers', () => saRegistration(getDb(), actor(), ref)))",
+  "new_string": "  ipcMain.handle('registers:sa', (_e, ref: unknown) => result('registers', () => saRegistration(getDb(), actor(), ref)))\n  ipcMain.handle('registers:income', (_e, ref: unknown) => result('registers', () => listIncomeSources(getDb(), actor(), ref)))"
+ },
+ {
+  "seq": 3291,
+  "old_string": "  completeDeadline, deleteContact, listAliases, listContacts, listIssues, listPayrollSchemes, listPensionSchemes, listPeriods,\n  listRelationships, lookups, saRegistration, saveContact, savePeriod, setIssueStatus",
+  "new_string": "  completeDeadline, deleteContact, listAliases, listContacts, listIncomeSources, listIssues, listPayrollSchemes, listPensionSchemes, listPeriods,\n  listRelationships, lookups, saRegistration, saveContact, savePeriod, setIssueStatus"
+ }
+]

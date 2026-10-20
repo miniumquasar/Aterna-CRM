@@ -1,0 +1,27 @@
+[
+ {
+  "seq": 3271,
+  "old_string": "const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])'",
+  "new_string": "const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])'\n\n/** How many dialogs are open: the app behind stays inert until the last one closes (a question asked from inside a dialog, say). */\nlet openDialogs = 0"
+ },
+ {
+  "seq": 3272,
+  "old_string": "    if (!open) return\n    const app = document.getElementById('root')\n    if (app) app.inert = true\n    returnFocus.current = document.activeElement as HTMLElement | null",
+  "new_string": "    if (!open) return\n    const app = document.getElementById('root')\n    openDialogs += 1\n    if (app) app.inert = true\n    returnFocus.current = document.activeElement as HTMLElement | null"
+ },
+ {
+  "seq": 3273,
+  "old_string": "    return () => {\n      cancelAnimationFrame(first)\n      if (app) app.inert = false\n      returnFocus.current?.focus?.()\n    }",
+  "new_string": "    return () => {\n      cancelAnimationFrame(first)\n      openDialogs = Math.max(0, openDialogs - 1)\n      if (app && openDialogs === 0) app.inert = false\n      returnFocus.current?.focus?.()\n    }"
+ },
+ {
+  "seq": 3391,
+  "old_string": "  initialFocus,\n  width = 'max-w-md',\n  children\n}: {\n  open: boolean\n  /** Escape and the backdrop close it; leave out for a dialog that needs an answer. */\n  onClose?: () => void\n  labelledBy: string\n  describedBy?: string\n  role?: 'dialog' | 'alertdialog'\n  /** CSS selector inside the dialog to focus first. */\n  initialFocus?: string\n  width?: string\n  children: ReactNode\n}): JSX.Element {",
+  "new_string": "  initialFocus,\n  width = 'max-w-md',\n  padded = true,\n  className = '',\n  children\n}: {\n  open: boolean\n  /** Escape and the backdrop close it; leave out for a dialog that needs an answer. */\n  onClose?: () => void\n  labelledBy: string\n  describedBy?: string\n  role?: 'dialog' | 'alertdialog'\n  /** CSS selector inside the dialog to focus first. */\n  initialFocus?: string\n  width?: string\n  /** False for a dialog that lays out its own header, body and footer. */\n  padded?: boolean\n  /** Extra classes for the panel (a height limit and a column layout, say). */\n  className?: string\n  children: ReactNode\n}): JSX.Element {"
+ },
+ {
+  "seq": 3392,
+  "old_string": "            className={`relative w-full ${width} rounded-2xl border border-white/10 bg-[#0d0a12]/95 p-6 shadow-2xl focus:outline-none`}",
+  "new_string": "            className={`relative w-full ${width} rounded-2xl border border-white/10 bg-[#0d0a12]/95 ${padded ? 'p-6' : ''} shadow-2xl focus:outline-none ${className}`}"
+ }
+]

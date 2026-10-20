@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2107,
+  "old_string": "const overdue = await window.api.registers.getWorklist({ withinDays: 0 })\n```",
+  "new_string": "// The worklist became the open-deadline list in Level 4B; registers.getWorklist was removed in Level 4C.\nconst overdue = await safeInvoke(() => window.api.deadlines.list({ withinDays: 0 }), 'deadlines:list')\n```"
+ },
+ {
+  "seq": 2110,
+  "old_string": "// The worklist became the open-deadline list in Level 4B; registers.getWorklist was removed in Level 4C.\nconst overdue = await safeInvoke(() => window.api.deadlines.list({ withinDays: 0 }), 'deadlines:list')",
+  "new_string": "// The worklist became the open-deadline list in Level 4B; registers.getWorklist was removed in Level 4C.\nconst overdue = await window.api.deadlines.list({ withinDays: 0 }) // { ok: true, data: OpenDeadline[] } or { ok: false, error }"
+ }
+]

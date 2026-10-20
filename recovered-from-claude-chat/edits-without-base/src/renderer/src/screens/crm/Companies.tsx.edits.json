@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2334,
+  "old_string": "  const handleBgSync = async () => {\n    setBgSyncing(true)\n    setBgSyncResult(null)\n    try {\n      const res = await window.api.bgSyncClients()\n      setBgSyncResult(`Background sync complete: ${res.synced}/${res.total} clients updated`)\n    } catch {\n      setBgSyncResult('Sync failed — check API key in Settings')\n    } finally {\n      setBgSyncing(false)\n      setTimeout(() => setBgSyncResult(null), 5000)\n    }\n  }",
+  "new_string": "  // Starts the Companies House check of every client company, in the background (the same check\n  // that runs each day); what it finds appears under Activity.\n  const handleBgSync = async () => {\n    setBgSyncing(true)\n    setBgSyncResult(null)\n    try {\n      const res = await window.api.pulse.syncCompaniesHouse()\n      if (!res.ok) setBgSyncResult(res.error)\n      else if (res.data.started) setBgSyncResult(`Checking ${res.data.total} client compan${res.data.total === 1 ? 'y' : 'ies'} in the background. Changes appear under Activity.`)\n      else setBgSyncResult(res.data.reason ?? 'Nothing to check.')\n    } catch {\n      setBgSyncResult('The check couldn’t start. Check the API key in Settings.')\n    } finally {\n      setBgSyncing(false)\n      setTimeout(() => setBgSyncResult(null), 8000)\n    }\n  }"
+ },
+ {
+  "seq": 2337,
+  "old_string": "            {bgSyncing ? 'Syncing all clients…' : 'Sync all clients from CH'}",
+  "new_string": "            {bgSyncing ? 'Starting the check…' : 'Check all client companies now'}"
+ }
+]

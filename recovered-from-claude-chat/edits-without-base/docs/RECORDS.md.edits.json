@@ -1,0 +1,22 @@
+[
+ {
+  "seq": 2089,
+  "old_string": "- Cancelling an invoice with money received against it turns that money into a credit for the client.",
+  "new_string": "- Cancelling an invoice with money received against it frees that money. It pays the client's other open invoices, oldest first, and anything left over is a credit for the client."
+ },
+ {
+  "seq": 2136,
+  "old_string": "- each person's role;\n- their share, and for partners their capital account, which can be below zero;\n- their UTR and National Insurance number. These are checked, and a mistyped one is refused with the person's name;\n- when they joined and left.",
+  "new_string": "- each person's role;\n- their share (partners and beneficiaries);\n- for partners, their capital account, which can be below zero, and their UTR;\n- for a trust's people, their date of birth;\n- their National Insurance number;\n- when they joined and left.\n\nUTRs and National Insurance numbers are checked. A mistyped one is refused with the person's name."
+ },
+ {
+  "seq": 2137,
+  "old_string": "a row that didn't match a client. Each says what to do. Work through them:",
+  "new_string": "a row that didn't match a client. Most say what to do. Work through them:"
+ },
+ {
+  "seq": 2145,
+  "old_string": "- the follow-ups due in the next week, each with *Done*;",
+  "new_string": "- the follow-ups overdue or due in the next week, each with *Done*;"
+ }
+]

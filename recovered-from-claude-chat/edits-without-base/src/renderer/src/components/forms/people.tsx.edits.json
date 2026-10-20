@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 3359,
+  "old_string": "    () => (all ?? []).map((c) => ({ id: c.id, ref: c.ref, client_name: c.client_name, business_name: c.business_name, reg_no: c.reg_no })),",
+  "new_string": "    () => (all ?? []).map((c) => ({ id: c.id, ref: c.ref, client_name: c.client_name, business_name: c.business_name, reg_no: c.reg_no, other_names: c.other_names ?? null })),"
+ }
+]

@@ -1,0 +1,101 @@
+{
+  "name": "companies-house-crm",
+  "version": "5.0.1",
+  "description": "Companies House CRM for UK accounting firms — macOS desktop application",
+  "main": "out/main/index.js",
+  "homepage": "./",
+  "author": "COMPANIES HOUSE CRM",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:win": "npm run build && electron-builder --win",
+    "build:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@companieshouse/api-sdk-node": "^2.0.18",
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.13.23",
+    "argon2": "^0.41.1",
+    "axios": "^1.15.0",
+    "better-sqlite3-multiple-ciphers": "^12.9.0",
+    "bip39": "^3.1.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "electron-store": "^8.2.0",
+    "framer-motion": "^11.11.9",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.460.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7",
+    "speakeasy": "^2.0.0",
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.169.0",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@electron-toolkit/preload": "^3.0.1",
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^20.16.13",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/speakeasy": "^2.0.10",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
+    "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.14",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.6.3",
+    "vite": "^8.0.8"
+  },
+  "build": {
+    "appId": "com.companieshousecrm.app",
+    "productName": "COMPANIES HOUSE CRM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "resources/**/*"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "identity": null,
+      "category": "public.app-category.business",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "icon": "resources/icon.icns",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "COMPANIES HOUSE CRM"
+    },
+    "extraMetadata": {
+      "main": "out/main/index.js"
+    }
+  }
+}

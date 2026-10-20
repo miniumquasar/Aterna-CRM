@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 1840,
+  "old_string": "  const navigateTo = useUiStore((s) => s.navigateTo)\n  const selectedClientId = useUiStore((s) => s.selectedClientId)\n  const target = useClientFileTarget((s) => s.clientRef)",
+  "new_string": "  const navigateTo = useUiStore((s) => s.navigateTo)\n  const target = useClientFileTarget((s) => s.clientRef)"
+ },
+ {
+  "seq": 1841,
+  "old_string": "  // arriving from a client record: open that client\n  useEffect(() => {\n    if (target || selectedClientId === null) return\n    const c = clients.find((x) => x.id === selectedClientId)\n    if (c) setTarget(c.ref)\n  }, [clients, selectedClientId, target, setTarget])\n\n  const load",
+  "new_string": "  const load"
+ }
+]

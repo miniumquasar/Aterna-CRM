@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2472,
+  "old_string": "  if (s.deadlineAlertDays !== undefined && !(Number.isInteger(s.deadlineAlertDays) && s.deadlineAlertDays >= 1 && s.deadlineAlertDays <= 365)) {\n    throw new UserFacingError('Deadline alerts are for 1 to 365 days ahead.')\n  }\n}",
+  "new_string": "  if (s.deadlineAlertDays !== undefined && !(Number.isInteger(s.deadlineAlertDays) && s.deadlineAlertDays >= 1 && s.deadlineAlertDays <= 365)) {\n    throw new UserFacingError('Deadline alerts are for 1 to 365 days ahead.')\n  }\n  if (s.streamEndpoints !== undefined && !(Array.isArray(s.streamEndpoints) && s.streamEndpoints.every((ep) => typeof ep === 'string' && ep in CH_STREAM_ENDPOINTS))) {\n    throw new UserFacingError('Unknown Companies House stream.')\n  }\n  for (const k of ['streamingEnabled', 'chDailyCheck', 'notificationsEnabled'] as const) {\n    if (s[k] !== undefined && typeof s[k] !== 'boolean') throw new UserFacingError('Choose on or off.')\n  }\n}"
+ },
+ {
+  "seq": 2473,
+  "old_string": "function getSelectedEndpoints(): CHStreamEndpoint[] {\n  const saved = getSetting('stream_endpoints')\n  if (!saved) return DEFAULT_STREAMS\n  try {\n    const parsed = JSON.parse(saved)\n    if (Array.isArray(parsed)) return parsed as CHStreamEndpoint[]\n  } catch (err) {",
+  "new_string": "function getSelectedEndpoints(): CHStreamEndpoint[] {\n  const saved = getSetting('stream_endpoints')\n  if (!saved) return DEFAULT_STREAMS\n  try {\n    const parsed: unknown = JSON.parse(saved)\n    // Only streams Companies House has, each once.\n    if (Array.isArray(parsed)) return [...new Set(parsed.filter((ep): ep is CHStreamEndpoint => typeof ep === 'string' && ep in CH_STREAM_ENDPOINTS))]\n  } catch (err) {"
+ }
+]

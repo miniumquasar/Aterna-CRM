@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 3036,
+  "old_string": "              placeholder={!status ? 'Checking that the assistant can run here…' : ready ? 'Ask about your clients, deadlines or tasks…' : 'The assistant isn’t ready on this computer yet.'}",
+  "new_string": "              placeholder={\n                ready\n                  ? 'Ask about your clients, deadlines or tasks…'\n                  : status\n                    ? 'The assistant isn’t ready on this computer yet.'\n                    : statusError\n                      ? 'The assistant couldn’t be checked: see the message above.'\n                      : 'Checking that the assistant can run here…'\n              }"
+ }
+]

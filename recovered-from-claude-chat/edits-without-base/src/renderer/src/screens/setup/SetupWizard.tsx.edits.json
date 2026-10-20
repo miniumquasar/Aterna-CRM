@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 1990,
+  "old_string": "  const canGoBack = (v: View): boolean => v === 'recovery' || v === 'vault' || v === 'licence' || v === 'import'",
+  "new_string": "  // Not from the vault step: going back there would drop the passphrase before its one chance to print.\n  const canGoBack = (v: View): boolean => v === 'recovery' || v === 'licence' || v === 'import'"
+ }
+]

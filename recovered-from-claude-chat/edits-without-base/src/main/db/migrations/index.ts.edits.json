@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2694,
+  "old_string": "import { migration0019 } from './0019_activity'",
+  "new_string": "import { migration0019 } from './0019_activity'\nimport { migration0020 } from './0020_audit_seals'"
+ },
+ {
+  "seq": 2695,
+  "old_string": "migration0018, migration0019]",
+  "new_string": "migration0018, migration0019, migration0020]"
+ }
+]

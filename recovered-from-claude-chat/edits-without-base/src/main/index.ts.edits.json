@@ -1,0 +1,22 @@
+[
+ {
+  "seq": 2021,
+  "old_string": "/** Folders earlier builds may have used; data is copied from the first that has a database. */",
+  "new_string": "// British English, whatever language the computer is set to: date boxes read\n// day/month/year, as the practice writes dates. (Many UK computers run in US English.)\napp.commandLine.appendSwitch('lang', 'en-GB')\n\n/** Folders earlier builds may have used; data is copied from the first that has a database. */"
+ },
+ {
+  "seq": 2465,
+  "old_string": "          settings: () => ({ alertDays: Number(getSetting('deadline_alert_days')) || 30, desktop: getSetting('notifications_enabled') !== 'false' })",
+  "new_string": "          settings: () => ({ alertDays: alertWindow(Number(getSetting('deadline_alert_days') ?? 30)), desktop: getSetting('notifications_enabled') !== 'false' })"
+ },
+ {
+  "seq": 2466,
+  "old_string": "          settings: () => ({ alertDays: alertWindow(Number(getSetting('deadline_alert_days') ?? 30)), desktop: getSetting('notifications_enabled') !== 'false' })",
+  "new_string": "          settings: () => ({ alertDays: alertWindow(getSetting('deadline_alert_days') || 30), desktop: getSetting('notifications_enabled') !== 'false' })"
+ },
+ {
+  "seq": 2469,
+  "old_string": "import { getLicence, initLicensing, reportIpcWiring, startLicenceReminders } from './licence'\nimport { FieldCipher, setFieldCipher } from './services/encryption'",
+  "new_string": "import { getLicence, initLicensing, reportIpcWiring, startLicenceReminders } from './licence'\nimport { alertWindow } from './records/notifications'\nimport { FieldCipher, setFieldCipher } from './services/encryption'"
+ }
+]

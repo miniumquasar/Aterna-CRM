@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2486,
+  "old_string": "export const streamEmitter = new EventEmitter()\nstreamEmitter.setMaxListeners(30)",
+  "new_string": "export const streamEmitter = new EventEmitter()\nstreamEmitter.setMaxListeners(30)\n// An 'error' event with no listener would throw: the stream's problems are shown, never fatal.\nstreamEmitter.on('error', () => undefined)\n\n/**\n * No data at all (not even Companies House's heartbeat) for this long means the\n * connection has died — as it does when the computer sleeps — so connect again.\n */\nconst SILENT_MS = 120_000"
+ },
+ {
+  "seq": 2487,
+  "old_string": "  req.on('error', (err) => {\n    if (state.active) {\n      state.status = 'reconnecting'\n      streamEmitter.emit('connectionError', ep, err.message)\n      scheduleReconnect(apiKey, ep, state, retryDelay)\n    }\n  })\n\n  req.end()\n  state.req = req\n}",
+  "new_string": "  req.on('error', (err) => {\n    if (state.active) {\n      state.status = 'reconnecting'\n      streamEmitter.emit('connectionError', ep, err.message)\n      scheduleReconnect(apiKey, ep, state, retryDelay)\n    }\n  })\n  // A connection gone quiet (sleep, a dropped network) is closed, which reconnects it from the last event.\n  req.setTimeout(SILENT_MS, () => req.destroy(new Error('No data from Companies House for two minutes')))\n\n  req.end()\n  state.req = req\n}"
+ }
+]

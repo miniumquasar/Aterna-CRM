@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 2711,
+  "old_string": "/**\n * CSV files the practice opens in Excel. A value that starts with = + - @ (or a\n * tab or carriage return) is kept as text with a leading apostrophe, so a\n * client's name or note can never run as a formula when the file is opened.\n * Plain numbers, negative ones included, stay numbers.\n */\nexport function csvCell(value: unknown): string {\n  if (value === null || value === undefined) return ''\n  let s = String(value)\n  if (/^[=+\\-@\\t\\r]/.test(s) && !/^[-+]?\\d+(\\.\\d+)?$/.test(s)) s = `'${s}`\n  return /[\",\\n\\r]/.test(s) ? `\"${s.replace(/\"/g, '\"\"')}\"` : s\n}\n\nexport const csvText = (header: readonly string[], rows: ReadonlyArray<readonly unknown[]>): string =>\n  [header.map(csvCell).join(','), ...rows.map((r) => r.map(csvCell).join(','))].join('\\r\\n')\n",
+  "new_string": "/** CSV for Excel: the same cells as the main process writes (@shared/csv). */\nexport { csvCell, csvText } from '@shared/csv'\n"
+ }
+]

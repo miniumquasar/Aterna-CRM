@@ -1,0 +1,114 @@
+# AETERNA CRM — builds the Windows installer (and, when asked, the Mac disk
+# images) on GitHub's own machines. The database module is native, so each
+# platform is built on that platform. docs/RELEASING.md has the whole process.
+#
+# Runs:
+#   - for a version tag pushed (v5.0.1 …): checks, then the Windows installer;
+#   - by hand (Actions → Build → Run workflow): the same, and the Mac disk
+#     images too when "Also build for macOS" is ticked.
+#
+# Signing is ready but off. It switches on by itself when these repository
+# secrets exist (Settings → Secrets and variables → Actions):
+#   Windows: WIN_CSC_LINK (the .pfx, base64) and WIN_CSC_KEY_PASSWORD
+#   macOS:   MAC_CSC_LINK (Developer ID Application .p12, base64), MAC_CSC_KEY_PASSWORD,
+#            APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID (notarisation)
+# Without them the builds are unsigned, as decided for the first release.
+name: Build
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      mac:
+        description: Also build for macOS
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint and tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      # The real-workbook tests skip themselves here: the workbook never goes in the repository.
+      - run: npm test
+
+  windows:
+    name: Windows installer
+    needs: checks
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-vite build
+      - name: Package the installer (unsigned unless the signing secrets exist)
+        run: npx electron-builder --win --x64 --publish never
+      - name: Check the packaged app refuses an edited archive
+        run: node scripts/asar-tamper-check.mjs release/win-unpacked
+      - run: node scripts/checksums.mjs release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AETERNA-CRM-windows
+          path: |
+            release/*.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  mac:
+    name: Mac disk images
+    needs: checks
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mac }}
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      # No certificate: don't go looking for one in the runner's keychain.
+      CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CSC_LINK != '' }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-vite build
+      - name: Package the disk images (unsigned unless the Apple secrets exist)
+        run: npx electron-builder --mac --publish never
+      - run: node scripts/checksums.mjs release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AETERNA-CRM-mac
+          path: |
+            release/*.dmg
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

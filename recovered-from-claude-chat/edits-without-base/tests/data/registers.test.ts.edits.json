@@ -1,0 +1,7 @@
+[
+ {
+  "seq": 3236,
+  "old_string": "    // staff see their client's file, without the managers-only registers\n    expect(clientFile(db, staffA, 'C1').sections.flatMap((s) => s.pages.map((p) => p.table))).not.toContain('personal_info')\n  })",
+  "new_string": "    // staff see their client's file, without the managers-only registers\n    expect(clientFile(db, staffA, 'C1').sections.flatMap((s) => s.pages.map((p) => p.table))).not.toContain('personal_info')\n  })\n\n  it('counts the client’s deadlines as the Deadlines panel lists them, the dates on the client record included', () => {\n    const db = setup()\n    // A VAT date only on the client record: on the Deadlines panel, so in the figures above it too.\n    db.exec(`UPDATE clients SET vat_due = '${local(3)}' WHERE ref = 'C1'`)\n    const o = clientFile(db, partner, 'C1').overview\n    const listed = openDeadlines(db, partner, { clientRef: 'C1', withinDays: 3650 })\n    expect([o.openDeadlines, o.overdueDeadlines, o.nextDueDate]).toEqual([listed.length, listed.filter((d) => d.days < 0).length, local(3)])\n    expect(o.openDeadlines).toBe(3)\n  })"
+ }
+]

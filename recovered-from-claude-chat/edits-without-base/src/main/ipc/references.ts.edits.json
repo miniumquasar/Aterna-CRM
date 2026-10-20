@@ -1,0 +1,12 @@
+[
+ {
+  "seq": 2761,
+  "old_string": "  ipcMain.handle('vault:lock', () => {\n    getVault().lock()\n    return getVault().status(actorOrUndefined())\n  })",
+  "new_string": "  ipcMain.handle('vault:lock', () => {\n    getVault().lock()\n    return getVault().status(actorOrUndefined())\n  })\n  // Works when the licence has run out (security housekeeping), never when the change wouldn't be saved.\n  // Not wrapped: the vault re-seals everything in its own transaction, and a wrong passphrase's entry stays.\n  ipcMain.handle('vault:change-passphrase', (_e, current: unknown, next: unknown) => result(() => {\n    const actor = currentActor()\n    const refusal = storageRefusal()\n    if (refusal) throw new UserFacingError(refusal)\n    if (typeof current !== 'string' || typeof next !== 'string' || current.length > 1000 || next.length > 1000) {\n      throw new UserFacingError('Type the current passphrase and the new one.')\n    }\n    return getVault().changePassphrase(current, next, actor, auditAs(actor))\n  }))"
+ },
+ {
+  "seq": 2762,
+  "old_string": "import { CredentialVault } from '../references/vault'",
+  "new_string": "import { storageRefusal } from '../licence'\nimport { CredentialVault } from '../references/vault'"
+ }
+]
