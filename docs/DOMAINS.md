@@ -7,13 +7,37 @@ migrations, routes, settings sections, client-file tabs, setup steps) with stubs
 fills in its own stubs and adds new files under its own paths.
 
 **Shared files a domain must not edit** (ask for a change in your report instead):
-`src/shared/ipc/*`, `src/main/ipc/registry.ts`, `src/main/ipc/register-all.ts`,
-`src/main/db/connection.ts`, `src/main/db/migrate.ts`, `src/main/db/migrations/index.ts`,
-`src/main/db/migrations/0001_core.ts`, `src/main/access/*`, `src/preload/*`,
-`src/renderer/src/lib/api.ts`, `src/renderer/src/navigation/routes.ts`,
-`src/renderer/src/App.tsx`, `package.json` (list a dependency you need in your report; the
-integrator adds it). Exception: `src/shared/ipc/events.ts` — append your events at the end of
-`ApiEvents`, inside the marked block for your domain.
+`src/shared/ipc/*`, `src/shared/product.ts`, `src/shared/domain/{roles,dates}.ts`, `src/main/index.ts`,
+`src/main/app/*` (except `menu.ts`, the release domain's), `src/main/startup/*`, `src/main/events.ts`,
+`src/main/jobs.ts`, `src/main/ipc/{registry,context,errors,input,register-all}.ts`, `src/main/db/*.ts`
+(`connection.ts`, `migrate.ts`, `key-file.ts`, `settings.ts`, `sql.ts`), `src/main/db/migrations/index.ts`,
+`src/main/db/migrations/0001_core.ts`, `src/main/access/*`, `src/main/security/field-crypto.ts`,
+`src/preload/*`, `src/renderer/index.html`, `src/renderer/src/{main.tsx,App.tsx}`, `src/renderer/src/lib/*`,
+`src/renderer/src/demo/*`, `src/renderer/src/navigation/*` (`routes.ts`, `nav.ts`, `searchProviders.ts`),
+`src/renderer/src/stores/router.ts`, `src/renderer/src/screens/settings/{SettingsScreen.tsx,sections.ts}`,
+`tests/helpers/*`, `tests/contract.test.ts`, the core tests directly in `tests/main/`, `tests/shared/` and
+`tests/renderer/`, `e2e/*`, `scripts/{electron-node,smoke}.mjs`, the config files at the root, and
+`package.json` (list a dependency you need in your report; the integrator adds it).
+Exception: `src/shared/ipc/events.ts` — add your events inside the marked block for your domain, in both
+places (the `ApiEvents` interface and the `EVENT_NAMES` table; the compiler checks they agree).
+
+### Where a domain plugs in (every slot is pre-wired)
+
+| Slot | Your file |
+| --- | --- |
+| IPC channels | `src/shared/contracts/<domain>.ts` (types and flags), handlers in `src/main/ipc/<domain>.ts` |
+| Background jobs | `registerJob(...)` from `src/main/jobs.ts`, called in your `register<Domain>Handlers()` |
+| Migrations | a file per migration in `src/main/db/migrations/<range>_<domain>/`, listed in that folder's `index.ts` |
+| Screens | the screen files named in `src/renderer/src/navigation/routes.ts` |
+| Settings sections | `src/renderer/src/screens/settings/<Name>Section.tsx` (listed in `sections.ts`) |
+| Client file tabs | the tab files listed in `src/renderer/src/screens/clients/clientFileTabs.ts` (each gets `{ clientId }`) |
+| Setup wizard steps | `src/renderer/src/screens/setup/<Name>Step.tsx` (listed in `steps.ts`) |
+| Go to… results | your provider (clients: `src/renderer/src/screens/clients/searchProvider.ts`) |
+| Banners in the shell | `components/licence/LicenceBanner.tsx`, `components/system/DatabaseStatusBanner.tsx`, `components/recovery/RecoveryPrompt.tsx`, `components/session/IdleWarning.tsx`, `components/notifications/NotificationBell.tsx` |
+| Tests | `tests/main/<domain>/`, `tests/shared/<domain>/`, `tests/renderer/<domain>/` (renderer tests are type-checked with the renderer; start a DOM test with `// @vitest-environment jsdom`) |
+
+A placeholder file says which domain owns it. Replace it whole; keep its export name (default export for
+screens, tabs, sections and steps) and the props its registry passes.
 
 Plan references below ("L3", "4C") are to `recovered-from-claude-chat/RELEASE_PLAN.md`.
 "Port" means: read the recovered file, keep its tested logic and wording, adapt it to this
@@ -28,6 +52,8 @@ schema and these contracts.
   `src/renderer/src/components/layout/**`, `src/renderer/src/styles/**`, `tailwind.config.ts`,
   `src/shared/contracts/appearance.ts`, `src/main/ipc/appearance.ts`, `src/main/preferences/**`,
   `src/renderer/src/screens/settings/AppearanceSection.tsx`, `src/renderer/src/screens/system/DesignGallery.tsx`.
+  Keep the props of every `components/ui` component (they are documented in each file) and the signatures
+  of `readAppearance()` and `windowColours()` (start-up calls them).
 - **Must:** Day, Night and Auto (Auto follows Windows through `nativeTheme`); the five colour
   themes from the brief — Burgundy & Slate (default), Sapphire, Emerald & Gold, Graphite &
   Copper, Indigo — plus the luxury themes the palette study recommends; every palette with a
@@ -49,9 +75,14 @@ schema and these contracts.
 ### auth — sign-in, people, firm, setup
 - **Owns:** `src/shared/contracts/auth.ts`, `src/main/auth/**`, `src/main/ipc/auth.ts`,
   migrations `0100`–`0199`, `src/renderer/src/screens/auth/**`, `src/renderer/src/screens/setup/**`
-  (the wizard shell and its Firm and First partner steps), `src/renderer/src/screens/settings/PeopleSection.tsx`,
+  (the wizard shell `SetupWizard.tsx`, `steps.ts`, and the `FirmStep`, `PartnerStep` and `DoneStep`; the
+  Recovery, Vault, Licence and Import steps belong to backup, references, licence and import),
+  `src/renderer/src/screens/settings/PeopleSection.tsx`,
   `src/renderer/src/screens/settings/FirmSection.tsx`, `src/renderer/src/components/session/**`,
-  `src/renderer/src/stores/session.ts`.
+  `src/renderer/src/stores/session.ts`. The scaffold's minimal sign-in, first partner and setup finish
+  (`auth.status`, `auth.signIn`, `auth.signOut`, `setup.createFirstPartner`, `setup.finish`) are yours to
+  extend; keep `auth.status`'s fields, which `App.tsx` gates on. Replace the session resolver with
+  `setSessionResolver()` (`src/main/ipc/context.ts`) for idle sign-out and last-seen times.
 - **Must (L1, 4A, 4B):** username and password only, scrypt hashing (Node crypto), lockout after
   repeated failures with a partner unlock; sessions bound to the window, idle sign-out after a
   chosen time (30 minutes by default) with a one-minute warning; sign-out in the sidebar;
@@ -90,14 +121,16 @@ schema and these contracts.
   `early-bundles/crm-import/src/main/licence/{store,format,engine,service}.ts`,
   `project/tools/licence-generator/*`, tests in `project/tests/licence/*`.
 - **Gate API for others:** `src/main/licence/gate.ts` exports `isReadOnly()` (the registry
-  calls it) and `licenceHolder()`.
+  calls it) and `licenceHolder()`. Start-up step 5 calls `startLicence()` in `src/main/licence/startup.ts`;
+  keep its signature. `tools/licence-generator/cli.ts` is a placeholder for `npm run licence`.
 
 ### backup — database key, recovery sheet, backups, system
 - **Owns:** `src/shared/contracts/backup.ts`, `src/shared/contracts/system.ts`, `src/main/backup/**`,
-  `src/main/security/recovery-sheet.ts`, `src/main/system/**`, `src/main/ipc/backup.ts`,
+  `src/main/security/recovery-sheet.ts`, `src/main/system/**`, `src/main/ipc/backup.ts`, `src/renderer/src/screens/setup/RecoveryStep.tsx`,
   `src/main/ipc/system.ts`, migrations `0300`–`0399`, `src/renderer/src/screens/settings/BackupsSection.tsx`,
-  `src/renderer/src/screens/setup/RecoveryStep.tsx`, `src/renderer/src/components/recovery/**`,
-  `src/renderer/src/components/system/**`.
+  `src/renderer/src/components/recovery/**`, `src/renderer/src/components/system/**`. Start-up notices
+  (a damaged database set aside, data from an earlier build) are in `startupNotices()`
+  (`src/main/app/notices.ts`) for the database status banner.
 - **Must (L1, 3C, L4 Fortress):** recovery sheet for the database key — PDF and print, partners
   only with their password re-entered, never logged; the key in short groups with check
   characters so a typing slip is caught and its group named; offered the moment the first
@@ -116,7 +149,9 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/clients.ts`, `src/shared/domain/references.ts`,
   `src/shared/domain/client-status.ts`, `src/main/records/clients/**`, `src/main/ipc/clients.ts`,
   migrations `0400`–`0499`, `src/renderer/src/screens/clients/**` (Clients list, Client file shell
-  and its Overview, Contacts and Registers tabs, edit dialog, quick add, paste import).
+  and its Overview, Contacts and Registers tabs, edit dialog, quick add, paste import, the Go to…
+  provider `searchProvider.ts`; `clientFileTabs.ts` is pre-wired with every domain's tab — keep the
+  other domains' entries).
 - **Must (3A, 4B, 4C, 4F, L5 decisions):** list with Current / No longer clients / Everyone
   (Current by default), search across names, trading names, other names, codes and company
   numbers, with "n matches among no-longer clients — show"; filters by type, status, assignee
@@ -140,7 +175,8 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/compliance.ts`, `src/shared/domain/deadlines.ts`,
   `src/main/records/compliance/**`, `src/main/ipc/compliance.ts`, migrations `0500`–`0599`,
   `src/renderer/src/screens/compliance/**` (Deadlines, HMRC & AML shell with its HMRC tab,
-  Onboarding gaps), the client file Deadlines tab.
+  Onboarding gaps, the client file's `ClientDeadlinesTab.tsx`) except `AmlTab.tsx` and
+  `ClientAmlTab.tsx`, which are the aml domain's.
 - **Must (4B, 4C, 4F):** statutory rules from period ends — accounts (9 months after year end
   for private companies), CT600 (12 months), CT payment (9 months and 1 day), VAT (1 month and
   7 days after quarter end, by stagger), confirmation statement, Self Assessment (31 January),
@@ -160,7 +196,7 @@ schema and these contracts.
 ### work — tasks, work in progress, billing
 - **Owns:** `src/shared/contracts/work.ts`, `src/shared/domain/money.ts`, `src/main/records/work/**`,
   `src/main/ipc/work.ts`, migrations `0600`–`0699`, `src/renderer/src/screens/work/**` (Tasks,
-  Work in progress, Billing), the client file Work tab.
+  Work in progress, Billing, the client file's `ClientWorkTab.tsx`).
 - **Must (3A, 4C, 4F):** tasks with assignee, due date, priority, status (open, in progress,
   done, cancelled — cancelled is never open), linked client and deadline; time and work in
   progress entries with rate and value in pence; invoices numbered automatically, open, paid or
@@ -173,8 +209,11 @@ schema and these contracts.
 ### aml — AML, data issues, audit log
 - **Owns:** `src/shared/contracts/aml.ts`, `src/main/records/aml/**`, `src/main/ipc/aml.ts`,
   migrations `0700`–`0799`, the AML tab of the HMRC & AML screen
-  (`src/renderer/src/screens/compliance/AmlTab.tsx`), the client file AML tab,
-  `src/renderer/src/screens/data/IssuesScreen.tsx`, `src/renderer/src/screens/security/AuditLogTab.tsx`.
+  (`src/renderer/src/screens/compliance/AmlTab.tsx`), the client file AML tab
+  (`src/renderer/src/screens/compliance/ClientAmlTab.tsx`), `src/renderer/src/screens/data/IssuesScreen.tsx`,
+  the client file Issues tab (`src/renderer/src/screens/data/ClientIssuesTab.tsx`),
+  `src/renderer/src/screens/security/AuditLogTab.tsx`. The hash chain itself (`recordChange`,
+  `verifyAuditChain`) is core, in `src/main/access/audit.ts`; build the log's screens and checks on it.
 - **Must (3A, 4C, 4E):** AML checks per client (customer due diligence, risk level, enhanced
   due diligence required before a high-risk check can be saved, ID evidence type, number
   encrypted, expiry, electronic check reference, review date), kept five years after the
@@ -188,7 +227,7 @@ schema and these contracts.
 ### comms — communications, documents, templates, email
 - **Owns:** `src/shared/contracts/comms.ts`, `src/main/records/comms/**`, `src/main/email/**`,
   `src/main/ipc/comms.ts`, migrations `0800`–`0899`, `src/renderer/src/screens/comms/**`
-  (Communications), the client file Communications and Documents tabs,
+  (Communications, the client file's `ClientCommsTab.tsx` and `ClientDocumentsTab.tsx`),
   `src/renderer/src/screens/settings/EmailSection.tsx`.
 - **Must (3C, 4C):** one Communications screen with each client's emails, WhatsApp messages,
   calls, meetings and notes as one conversation, with follow-ups; email opens in the PC's mail
@@ -209,7 +248,7 @@ schema and these contracts.
 ### references — references, authorisations, vault
 - **Owns:** `src/shared/contracts/references.ts`, `src/main/references/**`, `src/main/ipc/references.ts`,
   migrations `0900`–`0999`, `src/renderer/src/screens/practice/**` (Practice details and
-  references), the client file References tab, `src/renderer/src/screens/setup/VaultStep.tsx`.
+  references, the client file's `ClientReferencesTab.tsx`), `src/renderer/src/screens/setup/VaultStep.tsx`.
 - **Must:** practice identifiers (21 firm reference types with renewal countdowns: ASA agent
   codes, AML supervisor, ICO, professional body, PI insurance, the firm's own VAT, UTR, PAYE,
   ACSP…); client reference types beyond the client record (CIS, EORI, TRS URN, CGT property
@@ -231,7 +270,7 @@ schema and these contracts.
 ### import — workbook import, data explorer
 - **Owns:** `src/shared/contracts/import.ts`, `src/main/import/**`, `src/main/ipc/import.ts`,
   migrations `1000`–`1099`, `src/renderer/src/screens/import/**`, `src/renderer/src/screens/data/DataExplorer.tsx`,
-  `src/renderer/src/screens/setup/ImportStep.tsx`.
+  `src/renderer/src/screens/setup/ImportStep.tsx`, `src/renderer/src/screens/settings/ImportSection.tsx`.
 - **Must:** the master workbook adapter (14 sheets by `CLIENT_ID`) into this schema; a dry run
   that writes nothing and reports per-table counts, matches, issues, exclusions (plain-text
   passwords and unattributed emails left out); commit only of the exact previewed plan
@@ -245,7 +284,9 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/insights.ts`, `src/main/records/insights/**`, `src/main/services/scheduler.ts`,
   `src/main/services/notifier.ts`, `src/main/ipc/insights.ts`, migrations `1100`–`1149`,
   `src/renderer/src/screens/home/**`, `src/renderer/src/screens/activity/**`,
-  `src/renderer/src/screens/calendar/**`, `src/renderer/src/components/notifications/**`.
+  `src/renderer/src/screens/calendar/**`, `src/renderer/src/components/notifications/**`,
+  `src/renderer/src/screens/settings/NotificationsSection.tsx`. Raise notifications with the core
+  `notify()` / `completeSubject()` (`src/main/access/notify.ts`); run the scheduler as jobs (`registerJob`).
 - **Must (4A, 4D):** an honest, sophisticated Home: greeting, today's priorities (overdue and due
   this week, mine first), figures that are all real (live clients with the no-longer count beside
   it, overdue, due in 30 days, unbilled work, owed, AML and engagement gaps), a deadlines-by-month
@@ -290,7 +331,8 @@ schema and these contracts.
 
 ### release — packaging and release documents
 - **Owns:** `electron-builder.yml`, `build/**`, `scripts/release/**`, `.github/workflows/**`,
-  `src/main/app/menu.ts`, `docs/{INSTALLING,RELEASING,USER-GUIDE,ADMIN-GUIDE}.md`, `docs/legal/**`.
+  `src/main/app/menu.ts`, `docs/{INSTALLING,RELEASING,USER-GUIDE,ADMIN-GUIDE}.md`, `docs/legal/**`,
+  `src/renderer/src/screens/about/**` (About and help: version, guides, What's new, the support form).
 - **Must (L5, L7):** NSIS x64 per-user installer with desktop and Start-menu shortcuts; uninstall
   keeps the data unless "remove my data" is ticked; unsigned for now with the signing step present
   and off; manual updates by full installer that keeps the data; a 1024 × 1024 PNG icon with

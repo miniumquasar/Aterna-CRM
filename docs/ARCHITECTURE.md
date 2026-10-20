@@ -61,7 +61,7 @@ from the renderer; the renderer never imports from `@main`.
 | Script | Does |
 | --- | --- |
 | `npm run dev` | electron-vite dev |
-| `npm run typecheck` | `tsc --noEmit` for `tsconfig.node.json` (main, preload, shared, tools, tests) and `tsconfig.web.json` (renderer) |
+| `npm run typecheck` | `tsc --noEmit` for `tsconfig.node.json` (main, preload, shared, tools, tests, scripts) and `tsconfig.web.json` (renderer, shared, and `tests/renderer`, which need the DOM) |
 | `npm run lint` | ESLint, 0 errors required |
 | `npm test` | vitest, run under Electron's own Node so the one native SQLite build serves tests and app (`scripts/electron-node.mjs`) |
 | `npm run build` | typecheck, lint, test, then `electron-vite build` |
@@ -177,13 +177,21 @@ shows a plain-language error window with the log path and does not continue:
 7. Wiring report: any channel in `CHANNELS` without a handler is logged (and fails tests).
 8. Main window.
 9. Background jobs: deadline and notification checks, Companies House checks, scheduled
-   backups, licence reminders.
+   backups, licence reminders. A domain registers its jobs with `registerJob()` (`src/main/jobs.ts`)
+   from its own `registerXxxHandlers()`; step 9 starts them, and they never run in tests.
 
 The window: `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, `webSecurity`
 on, a strict CSP in `index.html`, navigation and new windows blocked, external links opened
 only for an allow-list (gov.uk, companieshouse.gov.uk, find-and-update.company-information…,
 ollama.com, `mailto:`, `https://wa.me/`). `backgroundColor` matches the saved theme so there is
 no white flash. No developer tools or Reload menu in packaged builds.
+
+Title bar: the window has no native title bar (`titleBarStyle: 'hidden'`). The renderer draws its
+own (`components/layout/TitleBar.tsx`) as the drag region. On Windows and Linux the system's own
+minimise, maximise and close buttons are kept through `titleBarOverlay` over the top-right corner,
+recoloured with the theme (`applyWindowTheme()`), so snap layouts and keyboard behaviour stay the
+system's; the page leaves room for them with `env(titlebar-area-*)`. macOS keeps its traffic lights
+(`hiddenInset`). No IPC is needed for window controls.
 
 ### Database — `src/main/db/`
 
@@ -195,9 +203,13 @@ no white flash. No developer tools or Reload menu in packaged builds.
   fails `quick_check` is set aside, with its `-wal` and `-shm`.
 - `getDb()` returns the open handle; services take `db` as a parameter so tests can pass an
   in-memory one.
-- Migrations are the only schema source: `src/main/db/migrations/NNNN_name.ts`, each exporting
-  `{ id: 'NNNN_name', up(db) }`, listed in `migrations/index.ts`, applied in order inside a
-  transaction and recorded in `schema_migrations`. A migration never drops user data.
+- Migrations are the only schema source: each exports `{ id: 'NNNN_name', up(db) }` (with
+  `foreignKeys: 'off'` for a table rebuild, which then has every key checked before it commits).
+  Core's is `src/main/db/migrations/0001_core.ts`; each domain keeps its own in
+  `src/main/db/migrations/<range>_<domain>/` (e.g. `0400_clients/0401_registers.ts`), listed in that
+  folder's `index.ts`, and `migrations/index.ts` composes the folders. They are applied in id order,
+  each inside a transaction, and recorded in `schema_migrations`; a database migrated by a newer
+  version is refused, unchanged. A migration never drops user data.
 - Number ranges, one per domain (see `docs/DOMAINS.md`): `0001` core, `0100` auth, `0200`
   licence, `0300` backup and system, `0400` clients, `0500` compliance, `0600` work and
   billing, `0700` AML and issues, `0800` communications and documents, `0900` references and
@@ -317,7 +329,9 @@ transparency; the choice is saved for the user on this PC.
   `actorFor('partner' | 'manager' | 'staff')`.
 - `tests/shared/**`: pure logic, table-driven.
 - `tests/renderer/**`: pure renderer logic; component tests with jsdom and Testing Library
-  where behaviour matters (dialogs, forms).
+  where behaviour matters (dialogs, forms). A DOM test starts with `// @vitest-environment jsdom`.
+- `tests/helpers/ipc.ts`: `createTestIpc(db)` calls channels through the real registry (session,
+  public, read-only checks and error handling), with `signInAs(role)`.
 - `tests/contract.test.ts`: every channel in `CHANNELS` has a handler, every handler a
   channel, every write channel's handler audits.
 - `e2e/`: Playwright `_electron` smoke over every route in Day and Night.
