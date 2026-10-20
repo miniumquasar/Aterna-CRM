@@ -1,0 +1,160 @@
+@import './glass.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tokens come from the ThemeProvider as CSS variables on <html>. The values
+ * here are only the first paint's fallback (Burgundy & Slate, Night), before
+ * the saved theme is applied.
+ */
+@layer base {
+  :root {
+    --window: 26 6 16;
+    --backdrop-1: 26 6 16;
+    --backdrop-2: 42 10 24;
+    --backdrop-3: 15 23 36;
+    --glow-1: 159 18 57;
+    --glow-2: 51 65 85;
+    --surface: 42 18 32;
+    --surface-alpha: 0.48;
+    --surface-raised: 43 20 33;
+    --surface-raised-alpha: 0.9;
+    --border: 245 208 220;
+    --border-alpha: 0.12;
+    --highlight: 255 255 255;
+    --highlight-alpha: 0.08;
+    --shadow: 0 0 0;
+    --text: 246 238 242;
+    --text-muted: 205 184 194;
+    --text-subtle: 168 145 156;
+    --accent: 190 18 60;
+    --on-accent: 255 255 255;
+    --accent-text: 251 127 155;
+    --accent-2: 148 163 184;
+    --success: 74 222 128;
+    --warning: 251 191 36;
+    --danger: 248 113 113;
+    --info: 96 165 250;
+    --focus: 253 164 175;
+    --chart-1: 251 113 133;
+    --chart-2: 148 163 184;
+    --chart-3: 45 212 191;
+    --chart-4: 251 191 36;
+    --chart-5: 167 139 250;
+    --chart-6: 56 189 248;
+    --chart-7: 244 114 182;
+    --chart-8: 163 230 53;
+
+    /* Glass: blur strength and grain, changed by the effects level. */
+    --glass-blur: 22px;
+    --glass-saturate: 150%;
+    --grain-opacity: 0.05;
+    --titlebar-height: 40px;
+    color-scheme: dark;
+  }
+
+  html[data-scheme='light'] {
+    color-scheme: light;
+  }
+
+  html[data-effects='balanced'] {
+    --glass-blur: 12px;
+    --glass-saturate: 130%;
+    --grain-opacity: 0.03;
+  }
+
+  html[data-effects='lite'] {
+    --glass-blur: 0px;
+    --glass-saturate: 100%;
+    --grain-opacity: 0;
+    --surface-alpha: 0.92;
+  }
+
+  html[data-transparency='reduce'] {
+    --surface-alpha: 0.97;
+    --surface-raised-alpha: 1;
+    --glass-blur: 0px;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    @apply font-sans text-fg antialiased;
+    background-color: rgb(var(--window));
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    font-feature-settings: 'tnum' 0;
+  }
+
+  ::selection {
+    background: rgb(var(--accent) / 0.35);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--focus));
+    outline-offset: 2px;
+  }
+
+  /* Tabular figures wherever numbers line up. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--text) / 0.14);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--text) / 0.26);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+  }
+
+  /* The browser's own controls follow the theme. */
+  select option {
+    background-color: rgb(var(--surface-raised));
+    color: rgb(var(--text));
+  }
+  input[type='date']::-webkit-calendar-picker-indicator {
+    opacity: 0.7;
+    cursor: pointer;
+  }
+}
+
+/* Movement follows the computer's setting, and the app's own Reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-motion='reduce'] *,
+html[data-motion='reduce'] *::before,
+html[data-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
