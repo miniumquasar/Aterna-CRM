@@ -94,16 +94,29 @@ function CountedFigure({ text, id }: { text: string; id: string }): JSX.Element 
     if (!animating || !figure) return
     markCounted(id)
     const start = performance.now()
-    let frame = requestAnimationFrame(function tick(now: number) {
-      const t = (now - start) / 600
+    let frame = 0
+    const finish = (): void => {
+      cancelAnimationFrame(frame)
+      clearTimeout(land)
+      setShown(null)
+    }
+    const tick = (): void => {
+      // The clock is read here, not taken from the frame, so every environment agrees.
+      const t = (performance.now() - start) / 600
       if (t >= 1) {
-        setShown(null)
+        finish()
         return
       }
       setShown(figureAt(figure, t))
       frame = requestAnimationFrame(tick)
-    })
-    return () => cancelAnimationFrame(frame)
+    }
+    frame = requestAnimationFrame(tick)
+    // A hidden or minimised window gets no animation frames: the real figure always lands.
+    const land = setTimeout(finish, 750)
+    return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(land)
+    }
   }, [animating, figure, id])
 
   if (!animating) return <>{text}</>

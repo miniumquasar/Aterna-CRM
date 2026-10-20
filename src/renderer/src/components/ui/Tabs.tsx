@@ -133,7 +133,7 @@ export function Tabs({ tabs, value, onChange, label, variant = 'line', idBase, c
                   'inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[13px] font-medium transition-colors duration-150',
                   'focus-visible:outline-offset-1 disabled:cursor-not-allowed disabled:opacity-40',
                   variant === 'line'
-                    ? cx('-mb-px rounded-t-lg border-b-2 px-3 py-2.5', selected ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:border-line/25 hover:text-fg')
+                    ? cx('-mb-px rounded-t-lg border-b-2 px-3 py-2.5', selected ? 'border-accent-text text-fg' : 'border-transparent text-fg-muted hover:border-line/25 hover:text-fg')
                     : cx('rounded-[9px] px-3 py-1.5', selected ? 'segment-on' : 'text-fg-muted hover:bg-fg/[0.05] hover:text-fg')
                 )}
               >

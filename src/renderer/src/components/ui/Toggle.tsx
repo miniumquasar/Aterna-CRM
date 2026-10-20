@@ -45,16 +45,15 @@ export function Toggle({ checked, onChange, label, description, disabled, labelH
         className={cx(
           'relative mt-0.5 inline-flex h-[26px] w-[46px] shrink-0 items-center rounded-full border transition-colors duration-200',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          checked
-            ? 'border-accent bg-gradient-to-r from-accent-from to-accent shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.18)]'
-            : 'border-line/25 bg-fg/[0.16] shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.12)]'
+          // Off is an outline with a muted knob (as Windows draws it), so the switch stands out at 3:1 either way.
+          checked ? 'border-accent-text bg-gradient-to-r from-accent-from to-accent shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.18)]' : 'border-fg-faint bg-surface-sunken/50 hover:bg-fg/[0.06]'
         )}
       >
         <span
           aria-hidden
           className={cx(
-            'inline-block h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.3),0_0_0_0.5px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-glass',
-            checked ? 'translate-x-[22px]' : 'translate-x-[2px]'
+            'inline-block rounded-full transition duration-200 ease-glass',
+            checked ? 'h-5 w-5 translate-x-[22px] bg-accent-fg shadow-[0_1px_3px_0_rgb(0_0_0/0.3),0_0_0_0.5px_rgb(0_0_0/0.06)]' : 'h-4 w-4 translate-x-[4px] bg-fg-muted'
           )}
         />
       </button>

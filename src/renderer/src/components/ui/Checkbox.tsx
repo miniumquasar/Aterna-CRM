@@ -50,7 +50,7 @@ export function Checkbox({ checked, onChange, label, description, indeterminate 
         aria-hidden
         className={cx(
           'pointer-events-none flex h-full w-full items-center justify-center rounded-[5px] border transition-colors duration-150',
-          on ? 'border-accent bg-accent text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.2)]' : 'border-line/40 bg-surface-sunken/60 peer-hover:border-line/60',
+          on ? 'border-accent-text bg-accent text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.2)]' : 'border-fg-faint bg-surface-sunken/50 peer-hover:border-fg-muted',
           'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus',
           disabled && 'opacity-50'
         )}

@@ -271,7 +271,7 @@ export function GlassTable<T>({
                     'hover:bg-fg/[0.035]',
                     // Focus and selection: the accent tint and a 3px bar on the first cell (rows can't draw shadows).
                     'focus-visible:bg-accent-soft [&:focus-visible>td:first-child]:shadow-[inset_3px_0_0_0_rgb(var(--focus))]',
-                    selected && 'bg-accent-soft [&>td:first-child]:shadow-[inset_3px_0_0_0_rgb(var(--accent))]'
+                    selected && 'bg-accent-soft [&>td:first-child]:shadow-[inset_3px_0_0_0_rgb(var(--focus))]'
                   )}
                 >
                   {selectable && (

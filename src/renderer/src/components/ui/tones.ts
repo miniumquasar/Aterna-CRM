@@ -5,7 +5,8 @@
  * a semantic colour is readable as text on its own soft tint, so success,
  * warning, danger and info pills use it for the label; the accent as text
  * is not readable enough on the accent tint, so accent pills keep the label
- * in body text and the accent for the dot, icon or bar (graphics need 3:1).
+ * in body text and the accent text colour (the focus colour) for the dot,
+ * icon or bar — the accent fill itself falls under 3:1 on its own tint in Night.
  */
 export type Tone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info'
 
@@ -32,7 +33,7 @@ export const TEXT_TONE: Record<Tone, string> = {
 /** A dot or bar in the tone. */
 export const DOT_TONE: Record<Tone, string> = {
   neutral: 'bg-fg-subtle',
-  accent: 'bg-accent',
+  accent: 'bg-accent-text',
   success: 'bg-success',
   warning: 'bg-warning',
   danger: 'bg-danger',
