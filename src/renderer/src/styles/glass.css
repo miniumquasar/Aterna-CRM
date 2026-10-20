@@ -56,6 +56,16 @@
       linear-gradient(145deg, rgb(var(--backdrop-1)) 0%, rgb(var(--backdrop-2)) 50%, rgb(var(--backdrop-3)) 100%);
   }
 
+  /* The field inside a preview (Settings → Appearance, the design gallery) rather than behind the window. */
+  .app-backdrop.backdrop-contained {
+    position: absolute;
+    border-radius: inherit;
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgb(var(--glow-1) / var(--glow-1-alpha)), transparent 62%),
+      radial-gradient(110% 80% at 50% 115%, rgb(var(--glow-2) / var(--glow-2-alpha)), transparent 66%),
+      linear-gradient(145deg, rgb(var(--backdrop-1)) 0%, rgb(var(--backdrop-2)) 50%, rgb(var(--backdrop-3)) 100%);
+  }
+
   /* Grain (feTurbulence, 0.8, two octaves), bundled: it stops banding on 8-bit screens. Not decoration. */
   .app-grain {
     position: fixed;

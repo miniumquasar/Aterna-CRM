@@ -17,18 +17,20 @@ export interface ThemeScopeProps {
   mode: ResolvedMode
   /** Defaults to the current effects level. */
   effects?: EffectsLevel
+  /** 'div' (default), or 'span' inside a button or other phrasing content (style it as a block). */
+  as?: 'div' | 'span'
   className?: string
   style?: CSSProperties
   children?: ReactNode
   'aria-hidden'?: boolean
 }
 
-export function ThemeScope({ palette, mode, effects, className, style, children, 'aria-hidden': ariaHidden }: ThemeScopeProps): JSX.Element {
+export function ThemeScope({ palette, mode, effects, as: Tag = 'div', className, style, children, 'aria-hidden': ariaHidden }: ThemeScopeProps): JSX.Element {
   const { prefs, reducedTransparency } = useTheme()
   const tokens = tokensFor(palette, mode)
   const vars = themeVariables(tokens, { effects: effects ?? prefs.effects, reduceTransparency: reducedTransparency })
   return (
-    <div
+    <Tag
       data-theme-scope
       data-mode={mode}
       data-scheme={tokens.scheme}
@@ -38,6 +40,6 @@ export function ThemeScope({ palette, mode, effects, className, style, children,
       style={{ ...(vars as CSSProperties), colorScheme: tokens.scheme, ...style }}
     >
       {children}
-    </div>
+    </Tag>
   )
 }
