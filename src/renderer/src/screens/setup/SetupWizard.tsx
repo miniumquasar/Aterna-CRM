@@ -92,7 +92,8 @@ export function SetupWizard({ status }: { status: AuthStatus }): JSX.Element {
           const active = i === at
           const state = stateOf(s.id)
           const passed = i < at
-          const later = passed && (state === 'skipped' || state === 'todo')
+          // Only a step whose domain says its work isn't done counts as left for later.
+          const later = passed && state === 'skipped'
           const ticked = passed && !later
           return (
             <li key={s.id} aria-current={active ? 'step' : undefined} className={cx('flex items-start gap-3 rounded-xl px-3 py-2', active && 'glass')}>
