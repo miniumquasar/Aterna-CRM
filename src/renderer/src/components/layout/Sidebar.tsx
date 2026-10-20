@@ -61,7 +61,7 @@ export function Sidebar({ actor }: SidebarProps): JSX.Element {
 
   return (
     <nav aria-label="Main" className="glass-panel relative z-10 flex w-[244px] shrink-0 flex-col rounded-panel" data-print="hide">
-      <div className="flex-1 overflow-y-auto px-3 pb-2 pt-3">
+      <div className="flex-1 overflow-y-auto px-3 pb-2 pt-2.5">
         {groups.map((group) => (
           <NavSection
             key={group.id}
@@ -72,8 +72,8 @@ export function Sidebar({ actor }: SidebarProps): JSX.Element {
           />
         ))}
       </div>
-      <div className="flex flex-col gap-2.5 p-3 pt-2">
-        <div className="hairline flex items-center gap-2.5 rounded-2xl border bg-fg/[0.035] p-2">
+      <div className="flex flex-col gap-2 p-3 pt-1.5">
+        <div className="hairline flex items-center gap-2.5 rounded-2xl border bg-fg/[0.035] px-2 py-1.5">
           <Avatar name={actor.name} size="sm" decorative />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold leading-5 text-fg">{actor.name}</p>
@@ -102,14 +102,14 @@ function NavSection({ group, activeId, open, onToggle }: { group: NavGroup; acti
   const listId = useId()
   const routes = open ? group.routes : group.routes.filter((r) => r.id === activeId)
   return (
-    <div className="mb-3 last:mb-0">
+    <div className="mb-2.5 last:mb-0">
       <h2>
         <button
           type="button"
           aria-expanded={open}
           aria-controls={listId}
           onClick={onToggle}
-          className="group/heading flex w-full items-center justify-between rounded-lg px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted transition-colors hover:text-fg"
+          className="group/heading flex w-full items-center justify-between rounded-lg px-3 pb-1 pt-1 text-[11px] font-semibold uppercase leading-4 tracking-[0.16em] text-fg-muted transition-colors hover:text-fg"
         >
           <span>{group.title}</span>
           <ChevronDown
@@ -132,7 +132,7 @@ function NavSection({ group, activeId, open, onToggle }: { group: NavGroup; acti
                 aria-current={active ? 'page' : undefined}
                 onClick={() => navigate(r.id)}
                 className={cx(
-                  'group flex h-9 w-full items-center gap-3 rounded-xl px-3 text-left text-[13.5px] font-medium transition duration-150 ease-glass',
+                  'group flex h-[34px] w-full items-center gap-3 rounded-xl px-3 text-left text-[13.5px] font-medium transition duration-150 ease-glass',
                   active ? 'segment-on' : 'text-fg-muted hover:bg-fg/[0.06] hover:text-fg'
                 )}
               >
