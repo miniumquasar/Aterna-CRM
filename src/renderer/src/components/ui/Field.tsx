@@ -76,19 +76,19 @@ export function Field({ label, hint, error, warning, required = false, optional 
   return (
     <FieldContext.Provider value={{ id, describedBy, invalid: !!error, required }}>
       <div className={cx('flex flex-col gap-1.5', className)}>
-        <label htmlFor={id} className={cx('text-[13px] font-medium text-fg', labelHidden && 'sr-only')}>
+        <label htmlFor={id} className={cx('text-[13px] font-medium leading-5 text-fg', labelHidden && 'sr-only')}>
           {label}
-          {optional && <span className="ml-1 font-normal text-fg-subtle">(optional)</span>}
+          {optional && <span className="ml-1 font-normal text-fg-muted">(optional)</span>}
         </label>
         {hint && (
-          <p id={hintId} className="-mt-0.5 text-xs text-fg-subtle">
+          <p id={hintId} className="-mt-1 text-xs leading-5 text-fg-muted">
             {hint}
           </p>
         )}
         {children}
         {(error || warning) && (
-          <p id={messageId} className={cx('flex items-start gap-1.5 text-xs', error ? 'text-danger' : 'text-warning')} aria-live="polite">
-            <CircleAlert size={13} className="mt-px shrink-0" aria-hidden />
+          <p id={messageId} className={cx('flex items-start gap-1.5 text-xs leading-5', error ? 'text-danger' : 'text-warning')} aria-live="polite">
+            <CircleAlert size={13} className="mt-[3px] shrink-0" aria-hidden />
             <span>{error ?? warning}</span>
           </p>
         )}

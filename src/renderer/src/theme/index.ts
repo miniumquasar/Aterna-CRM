@@ -1,4 +1,6 @@
 export { ThemeProvider } from './ThemeProvider'
+export { ThemeScope, type ThemeScopeProps } from './ThemeScope'
 export { useTheme, type ThemeContextValue } from './context'
-export { applyTheme, initialMode } from './apply'
+export { applyTheme, initialMode, morph, systemPreference } from './apply'
 export { readCachedAppearance } from './storage'
+export { useReducedMotion, useFullEffects } from './motion'

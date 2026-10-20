@@ -13,7 +13,8 @@ export interface KbdProps {
   className?: string
 }
 
-const keyClass = 'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-line/25 bg-fg/[0.06] px-1.5 font-sans text-[11px] font-medium text-fg-muted'
+const keyClass =
+  'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-b-2 border-line/20 bg-fg/[0.05] px-1.5 font-sans text-[11px] font-medium leading-none text-fg-muted'
 
 export function Kbd({ keys, children, className }: KbdProps): JSX.Element {
   if (keys?.length) {

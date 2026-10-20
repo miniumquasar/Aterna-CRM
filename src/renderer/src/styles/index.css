@@ -1,81 +1,173 @@
+@import './fonts.css';
 @import './glass.css';
+@import './print.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /*
- * Tokens come from the ThemeProvider as CSS variables on <html>. The values
- * here are only the first paint's fallback (Burgundy & Slate, Night), before
- * the saved theme is applied.
+ * Tokens come from the ThemeProvider as CSS variables on <html> (the palette
+ * study's tokens, src/shared/theme/palettes.ts, at the chosen glass level).
+ * The values here are only a fallback (Burgundy & Slate, Night, Balanced),
+ * generated from those same tokens, for the moment before the saved theme
+ * is applied.
  */
 @layer base {
   :root {
-    --window: 26 6 16;
-    --backdrop-1: 26 6 16;
-    --backdrop-2: 42 10 24;
-    --backdrop-3: 15 23 36;
-    --glow-1: 159 18 57;
-    --glow-2: 51 65 85;
-    --surface: 42 18 32;
-    --surface-alpha: 0.48;
-    --surface-raised: 43 20 33;
-    --surface-raised-alpha: 0.9;
-    --border: 245 208 220;
-    --border-alpha: 0.12;
-    --highlight: 255 255 255;
-    --highlight-alpha: 0.08;
-    --shadow: 0 0 0;
-    --text: 246 238 242;
-    --text-muted: 205 184 194;
-    --text-subtle: 168 145 156;
-    --accent: 190 18 60;
+    --window: 17 10 17;
+    --backdrop-1: 43 10 22;
+    --backdrop-2: 17 10 17;
+    --backdrop-3: 9 10 16;
+    --glow-1: 150 22 60;
+    --glow-1-alpha: 0.38;
+    --glow-2: 58 80 116;
+    --glow-2-alpha: 0.26;
+    --surface: 60 18 36;
+    --surface-alpha: 0.5;
+    --surface-raised: 255 226 238;
+    --surface-raised-alpha: 0.05;
+    --surface-sunken: 6 2 6;
+    --surface-sunken-alpha: 0.32;
+    --border: 255 200 222;
+    --border-alpha: 0.1;
+    --border-strong: 255 200 222;
+    --border-strong-alpha: 0.2;
+    --highlight: 255 236 244;
+    --highlight-alpha: 0.12;
+    --shadow: 6 0 4;
+    --shadow-alpha: 0.55;
+    --text: 251 238 244;
+    --text-muted: 194 172 191;
+    --text-subtle: 153 135 158;
+    --text-faint: 153 135 158;
+    --accent: 211 57 93;
+    --accent-hover: 217 52 93;
+    --accent-active: 190 33 76;
     --on-accent: 255 255 255;
-    --accent-text: 251 127 155;
-    --accent-2: 148 163 184;
-    --success: 74 222 128;
-    --warning: 251 191 36;
-    --danger: 248 113 113;
-    --info: 96 165 250;
-    --focus: 253 164 175;
-    --chart-1: 251 113 133;
-    --chart-2: 148 163 184;
-    --chart-3: 45 212 191;
-    --chart-4: 251 191 36;
-    --chart-5: 167 139 250;
-    --chart-6: 56 189 248;
-    --chart-7: 244 114 182;
-    --chart-8: 163 230 53;
+    --accent-fg: 255 255 255;
+    --accent-text: 237 116 143;
+    --accent-soft: 211 57 93;
+    --accent-soft-alpha: 0.2;
+    --accent-2: 155 169 194;
+    --accent-gradient-from: 154 20 56;
+    --accent-gradient-to: 211 57 93;
+    --focus: 237 116 143;
+    --success: 101 186 126;
+    --success-soft: 101 186 126;
+    --success-soft-alpha: 0.14;
+    --warning: 218 163 79;
+    --warning-soft: 218 163 79;
+    --warning-soft-alpha: 0.14;
+    --danger: 255 143 121;
+    --danger-soft: 255 143 121;
+    --danger-soft-alpha: 0.14;
+    --info: 123 175 224;
+    --info-soft: 123 175 224;
+    --info-soft-alpha: 0.14;
+    --chart-1: 227 74 106;
+    --chart-2: 87 150 213;
+    --chart-3: 99 133 59;
+    --chart-4: 187 112 180;
+    --chart-5: 13 139 109;
+    --chart-6: 188 137 27;
+    --chart-7: 112 116 195;
+    --chart-8: 195 94 53;
+    --chart-seq-1: 255 208 214;
+    --chart-seq-2: 249 162 175;
+    --chart-seq-3: 230 121 140;
+    --chart-seq-4: 202 85 109;
+    --chart-seq-5: 166 58 82;
+    --chart-div-1: 98 152 207;
+    --chart-div-2: 69 106 145;
+    --chart-div-3: 70 72 76;
+    --chart-div-4: 163 78 87;
+    --chart-div-5: 230 110 123;
+    --solid-surface: 38 14 26;
+    --solid-raised: 49 25 37;
+    --solid-sunken: 28 10 20;
+    --solid-selected: 73 23 40;
 
-    /* Glass: blur strength and grain, changed by the effects level. */
-    --glass-blur: 22px;
+    /* Glass: blur, saturation, grain and depth, set per effects level below. */
+    --glass-blur: 20px;
+    --glass-blur-pop: 28px;
     --glass-saturate: 150%;
-    --grain-opacity: 0.05;
+    --grain-opacity: 0.02;
+    --sheen: 0;
     --titlebar-height: 40px;
-    color-scheme: dark;
+
+    /* Density: table rows and card padding (Compact drops padding by a third). */
+    --row-h: 44px;
+    --pad-sm: 12px;
+    --pad-md: 20px;
+    --pad-lg: 28px;
+    --gap-section: 24px;
   }
 
-  html[data-scheme='light'] {
-    color-scheme: light;
+  /*
+   * Values built from the tokens are declared wherever tokens are (the page,
+   * and any ThemeScope preview), so each takes its own palette's colours.
+   */
+  :root,
+  [data-theme-scope] {
+    --elev-1: 0 1px 2px rgb(var(--shadow) / calc(var(--shadow-alpha) * 0.4));
+    --elev-2: 0 12px 32px -12px rgb(var(--shadow) / var(--shadow-alpha));
+    --elev-3: 0 32px 64px -24px rgb(var(--shadow) / var(--shadow-alpha));
+    --elev-pop: 0 24px 64px -20px rgb(var(--shadow) / min(1, calc(var(--shadow-alpha) * 2)));
+    --glass-depth: var(--elev-1), var(--elev-2);
+    --inner-highlight: inset 0 1px 0 0 rgb(var(--highlight) / var(--highlight-alpha));
+    --hairline: rgb(var(--border) / var(--border-alpha));
+    --hairline-strong: rgb(var(--border-strong) / var(--border-strong-alpha));
+    --scrim: rgb(var(--shadow) / 0.3);
+    --sheen-colour: 255 255 255;
   }
 
-  html[data-effects='balanced'] {
-    --glass-blur: 12px;
-    --glass-saturate: 130%;
-    --grain-opacity: 0.03;
+  /* The effects levels (the palette study, §7). The glass alphas themselves are in the variables. */
+  html[data-effects='full'] {
+    --glass-blur: 28px;
+    --glass-blur-pop: 36px;
+    --glass-saturate: 170%;
+    --grain-opacity: 0.035;
   }
-
+  html[data-effects='full'],
+  html[data-effects='full'] [data-theme-scope] {
+    --glass-depth: var(--elev-1), var(--elev-2), var(--elev-3);
+  }
+  html[data-effects='full'][data-scheme='light'] {
+    --sheen: 0.1;
+  }
+  html[data-effects='full'][data-scheme='dark'] {
+    --sheen: 0.06;
+  }
   html[data-effects='lite'] {
+    --glass-blur: 10px;
+    --glass-blur-pop: 10px;
+    --glass-saturate: 120%;
+    --grain-opacity: 0;
+  }
+  html[data-effects='lite'],
+  html[data-effects='lite'] [data-theme-scope],
+  html[data-transparency='reduce'],
+  html[data-transparency='reduce'] [data-theme-scope] {
+    --glass-depth: var(--elev-2);
+  }
+  html[data-transparency='reduce'] {
     --glass-blur: 0px;
+    --glass-blur-pop: 0px;
     --glass-saturate: 100%;
     --grain-opacity: 0;
-    --surface-alpha: 0.92;
+    --sheen: 0;
+  }
+  html[data-scheme='dark'] {
+    --scrim: rgb(var(--shadow) / 0.5);
   }
 
-  html[data-transparency='reduce'] {
-    --surface-alpha: 0.97;
-    --surface-raised-alpha: 1;
-    --glass-blur: 0px;
+  html[data-density='compact'] {
+    --row-h: 32px;
+    --pad-sm: 8px;
+    --pad-md: 14px;
+    --pad-lg: 20px;
+    --gap-section: 16px;
   }
 
   html,
@@ -85,57 +177,110 @@
     margin: 0;
   }
 
+  /* Until a theme is on, the page stays clear and the window's own colour (the saved theme's) shows: no flash. */
+  html {
+    background-color: transparent;
+  }
+  html[data-theme] {
+    background-color: rgb(var(--window));
+  }
+
   body {
     @apply font-sans text-fg antialiased;
-    background-color: rgb(var(--window));
+    background-color: transparent;
     font-size: 14px;
     line-height: 1.5;
     overflow: hidden;
-    font-feature-settings: 'tnum' 0;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
   }
 
   ::selection {
-    background: rgb(var(--accent) / 0.35);
+    background: rgb(var(--accent) / 0.28);
   }
 
+  /*
+   * The focus ring: 2px in the focus colour with a 2px gap that shows the
+   * surface beneath, so it reads on glass and on an accent button alike.
+   * It draws in over 120ms (not at all under reduced motion).
+   */
   :focus-visible {
     outline: 2px solid rgb(var(--focus));
     outline-offset: 2px;
+    animation: focus-ring-in 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes focus-ring-in {
+    from {
+      outline-offset: 5px;
+      outline-color: rgb(var(--focus) / 0);
+    }
   }
 
-  /* Tabular figures wherever numbers line up. */
+  /* Figures that line up: tables, money, dates. */
   .tabular {
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  /* Reference numbers (UTR, VAT, company numbers): slashed zero, and I, l and 1 told apart. */
+  .ref-figures {
+    font-variant-numeric: tabular-nums lining-nums slashed-zero;
+    font-feature-settings: 'tnum', 'zero', 'ss02';
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgb(var(--text) / 0.14);
-    border: 3px solid transparent;
+    background: rgb(var(--text) / 0.16);
+    border: 4px solid transparent;
     border-radius: 999px;
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--text) / 0.26);
+    background: rgb(var(--text) / 0.28);
     background-clip: padding-box;
     border: 3px solid transparent;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
   /* The browser's own controls follow the theme. */
   select option {
-    background-color: rgb(var(--surface-raised));
+    background-color: rgb(var(--solid-raised));
     color: rgb(var(--text));
   }
+  /* The system's date picker opens from the whole icon area; the app draws its own icon underneath. */
   input[type='date']::-webkit-calendar-picker-indicator {
-    opacity: 0.7;
+    position: absolute;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
     cursor: pointer;
   }
+  input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+}
+
+/* A colour theme or mode change cross-fades (theme/apply.ts skips it under reduced motion). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Movement follows the computer's setting, and the app's own Reduce motion. */
@@ -157,4 +302,3 @@ html[data-motion='reduce'] *::after {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
-

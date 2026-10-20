@@ -1,117 +1,143 @@
 /**
- * Settings → Appearance: Day, Night or Auto; the colour theme; effects;
- * reduce motion and transparency. Saved for the person using this PC.
- * Owned by the design domain, which lays it out like the brief.
+ * Settings → Appearance, laid out like the brief: Day, Night and Auto as
+ * cards, each with a live picture of the current colour theme in that mode;
+ * the colour themes as cards with their three-colour gradient and a check on
+ * the chosen one; then glass effects, density, and the comfort switches.
+ * Saved for the person using this PC, shown at once (cross-fading unless
+ * motion is reduced), and used before anyone signs in.
  */
-import { Check, Contrast, Moon, Sun, type LucideIcon } from 'lucide-react'
-import { EFFECTS_LABELS, EFFECTS_LEVELS, type ThemeMode } from '@shared/theme/appearance'
-import { PALETTE_IDS, PALETTES } from '@shared/theme/palettes'
-import { Segmented, Toggle } from '@renderer/components/ui'
-import { cx } from '@renderer/lib/cx'
-import { useTheme } from '@renderer/theme'
-
-const MODES: ReadonlyArray<{ value: ThemeMode; label: string; hint: string; icon: LucideIcon }> = [
-  { value: 'day', label: 'Day', hint: 'Light glass', icon: Sun },
-  { value: 'night', label: 'Night', hint: 'Deep glass', icon: Moon },
-  { value: 'auto', label: 'Auto', hint: 'Follows Windows', icon: Contrast }
-]
+import type { ReactNode } from 'react'
+import {
+  DENSITY_LABELS,
+  DENSITY_LEVELS,
+  DENSITY_TAGLINES,
+  EFFECTS_LABELS,
+  EFFECTS_LEVELS,
+  EFFECTS_TAGLINES,
+  MODE_LABELS,
+  MODE_TAGLINES,
+  THEME_MODES,
+  type ThemeMode
+} from '@shared/theme/appearance'
+import { PALETTE_IDS, PALETTES, prose, type PaletteId, type ResolvedMode } from '@shared/theme/palettes'
+import { RadioCards, Segmented, Toggle } from '@renderer/components/ui'
+import { ThemeScope, useTheme } from '@renderer/theme'
 
 export default function AppearanceSection(): JSX.Element {
-  const { prefs, mode, setPrefs } = useTheme()
+  const { prefs, palette, setPrefs, reducedMotion, reducedTransparency, osDark } = useTheme()
+  const windowsAsksStill = reducedMotion && !prefs.reduceMotion
+  const windowsAsksSolid = reducedTransparency && !prefs.reduceTransparency
+
   return (
-    <div className="flex flex-col gap-8">
-      <section aria-labelledby="appearance-mode">
-        <h3 id="appearance-mode" className="mb-3 text-sm font-semibold text-fg">
-          Mode
-        </h3>
-        <div role="radiogroup" aria-labelledby="appearance-mode" className="grid grid-cols-3 gap-3">
-          {MODES.map((m) => {
-            const selected = prefs.mode === m.value
-            const Icon = m.icon
-            return (
-              <button
-                key={m.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                data-mode-choice={m.value}
-                onClick={() => setPrefs({ mode: m.value })}
-                className={cx(
-                  'glass relative flex items-center gap-3 rounded-2xl p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
-                  selected ? '!border-accent/60 ring-1 ring-accent/40' : 'hover:bg-fg/[0.05]'
-                )}
-              >
-                <Icon size={20} aria-hidden className={selected ? 'text-accent-text' : 'text-fg-subtle'} />
-                <span>
-                  <span className="block text-sm font-medium text-fg">{m.label}</span>
-                  <span className="block text-xs text-fg-subtle">{m.hint}</span>
-                </span>
-                {selected && <Check size={16} aria-hidden className="absolute right-3 top-3 text-accent-text" />}
-              </button>
-            )
-          })}
-        </div>
-      </section>
+    <div className="flex flex-col gap-9">
+      <p className="-mt-2 text-[13px] leading-5 text-fg-muted">Saved for you on this PC, and used on the sign-in screen too. Changes show at once.</p>
 
-      <section aria-labelledby="appearance-theme">
-        <h3 id="appearance-theme" className="mb-3 text-sm font-semibold text-fg">
-          Colour theme
-        </h3>
-        <div role="radiogroup" aria-labelledby="appearance-theme" className="grid grid-cols-2 gap-3 xl:grid-cols-3">
-          {PALETTE_IDS.map((id) => {
-            const p = PALETTES[id]
-            const t = p[mode]
-            const selected = prefs.palette === id
-            return (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                data-palette-choice={id}
-                onClick={() => setPrefs({ palette: id })}
-                className={cx(
-                  'glass relative overflow-hidden rounded-2xl p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
-                  selected ? '!border-accent/60 ring-1 ring-accent/40' : 'hover:bg-fg/[0.05]'
-                )}
-              >
-                <span
-                  aria-hidden
-                  className="mb-3 block h-16 rounded-xl"
-                  style={{ background: `linear-gradient(135deg, ${t.backdrop[0]} 0%, ${t.backdrop[1]} 50%, ${t.backdrop[2]} 100%)` }}
-                >
-                  <span className="flex h-full items-end gap-1.5 p-2.5">
-                    <span className="h-4 w-4 rounded-full ring-2 ring-white/30" style={{ background: t.accent }} />
-                    <span className="h-4 w-4 rounded-full ring-2 ring-white/30" style={{ background: t.accent2 }} />
-                  </span>
-                </span>
-                <span className="block text-sm font-medium text-fg">{p.name}</span>
-                <span className="block text-xs text-fg-subtle">{p.description}</span>
-                {selected && (
-                  <span className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-fg" aria-hidden>
-                    <Check size={14} strokeWidth={3} />
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section aria-labelledby="appearance-effects" className="flex flex-col gap-4">
-        <h3 id="appearance-effects" className="text-sm font-semibold text-fg">
-          Effects
-        </h3>
-        <Segmented
-          label="Effects"
-          value={prefs.effects}
-          onChange={(effects) => setPrefs({ effects })}
-          options={EFFECTS_LEVELS.map((e) => ({ value: e, label: EFFECTS_LABELS[e] }))}
+      <Section id="appearance-mode" title="Mode">
+        <RadioCards
+          labelledBy="appearance-mode"
+          value={prefs.mode}
+          onChange={(mode) => setPrefs({ mode })}
+          columns={3}
+          choiceAttribute="data-mode-choice"
+          options={THEME_MODES.map((m) => ({
+            value: m,
+            label: MODE_LABELS[m],
+            description: m === 'auto' ? `${MODE_TAGLINES.auto} (now ${osDark ? 'Night' : 'Day'})` : MODE_TAGLINES[m],
+            preview: <ModePreview palette={prefs.palette} mode={m} />
+          }))}
         />
-        <p className="-mt-2 text-xs text-fg-subtle">Lite turns off the glass blur, for modest PCs.</p>
-        <Toggle label="Reduce motion" description="Fewer animations, and none that move across the screen." checked={prefs.reduceMotion} onChange={(reduceMotion) => setPrefs({ reduceMotion })} />
-        <Toggle label="Reduce transparency" description="Solid surfaces instead of glass." checked={prefs.reduceTransparency} onChange={(reduceTransparency) => setPrefs({ reduceTransparency })} />
-      </section>
+      </Section>
+
+      <Section id="appearance-theme" title="Colour theme" note={<>{palette.name} suits {lowerFirst(prose(palette.recommendedFor))}</>}>
+        <RadioCards
+          labelledBy="appearance-theme"
+          value={prefs.palette}
+          onChange={(id) => setPrefs({ palette: id })}
+          columns={4}
+          choiceAttribute="data-palette-choice"
+          options={PALETTE_IDS.map((id) => ({ value: id, label: PALETTES[id].name, description: PALETTES[id].tagline, preview: <Swatch id={id} /> }))}
+        />
+      </Section>
+
+      <div className="grid gap-9 xl:grid-cols-2">
+        <Section id="appearance-effects" title="Glass effects" note={windowsAsksSolid || prefs.reduceTransparency ? 'Reduce transparency is on, so every surface is solid whatever is chosen here.' : EFFECTS_TAGLINES[prefs.effects]}>
+          <Segmented label="Glass effects" value={prefs.effects} onChange={(effects) => setPrefs({ effects })} options={EFFECTS_LEVELS.map((e) => ({ value: e, label: EFFECTS_LABELS[e] }))} fullWidth />
+        </Section>
+        <Section id="appearance-density" title="Density" note={DENSITY_TAGLINES[prefs.density]}>
+          <Segmented label="Density" value={prefs.density} onChange={(density) => setPrefs({ density })} options={DENSITY_LEVELS.map((d) => ({ value: d, label: DENSITY_LABELS[d] }))} fullWidth />
+        </Section>
+      </div>
+
+      <Section id="appearance-comfort" title="Comfort">
+        <div className="hairline flex flex-col divide-y divide-line/10 rounded-2xl border">
+          <Toggle
+            className="px-4 py-3.5"
+            label="Reduce motion"
+            description={windowsAsksStill ? 'Windows already asks for less movement, so the app keeps still whatever this says.' : 'No count-ups, cross-fades or sliding: changes simply appear.'}
+            checked={prefs.reduceMotion}
+            onChange={(reduceMotion) => setPrefs({ reduceMotion })}
+          />
+          <Toggle
+            className="px-4 py-3.5"
+            label="Reduce transparency"
+            description={windowsAsksSolid ? 'Windows already has transparency effects off, so surfaces are solid whatever this says.' : 'Solid surfaces instead of glass, with stronger edges. Easier on older PCs too.'}
+            checked={prefs.reduceTransparency}
+            onChange={(reduceTransparency) => setPrefs({ reduceTransparency })}
+          />
+        </div>
+      </Section>
     </div>
+  )
+}
+
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1)
+}
+
+function Section({ id, title, note, children }: { id: string; title: string; note?: ReactNode; children: ReactNode }): JSX.Element {
+  return (
+    <section aria-labelledby={id}>
+      <h3 id={id} className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
+        {title}
+      </h3>
+      {children}
+      {note && <p className="mt-2.5 text-[13px] leading-5 text-fg-muted">{note}</p>}
+    </section>
+  )
+}
+
+/** The palette's three colours as one gradient: deep, accent, sheen. */
+function Swatch({ id }: { id: PaletteId }): JSX.Element {
+  const [deep, accent, sheen] = PALETTES[id].swatches
+  return (
+    <span
+      aria-hidden
+      className="block h-[68px] shadow-[inset_0_1px_0_0_rgb(255_255_255/0.28),inset_0_-12px_24px_-12px_rgb(0_0_0/0.25)]"
+      style={{ backgroundImage: `linear-gradient(135deg, ${deep} 0%, ${accent} 58%, ${sheen} 108%)` }}
+    />
+  )
+}
+
+/** A small window in the current colour theme, in one mode (Auto: Day and Night, split across). */
+function ModePreview({ palette, mode }: { palette: PaletteId; mode: ThemeMode }): JSX.Element {
+  if (mode !== 'auto') return <MiniWindow palette={palette} mode={mode} />
+  return (
+    <span className="relative block">
+      <MiniWindow palette={palette} mode="day" />
+      <span className="absolute inset-0 block" style={{ clipPath: 'polygon(56% 0, 100% 0, 100% 100%, 44% 100%)' }}>
+        <MiniWindow palette={palette} mode="night" />
+      </span>
+    </span>
+  )
+}
+
+function MiniWindow({ palette, mode }: { palette: PaletteId; mode: ResolvedMode }): JSX.Element {
+  return (
+    <ThemeScope as="span" palette={palette} mode={mode} aria-hidden className="relative block h-[86px] overflow-hidden">
+      <span className="app-backdrop backdrop-contained" />
+      <span className="glass-panel absolute bottom-2 left-2 top-2 w-[24%] rounded-[9px]" />
+      <span className="glass absolute left-[calc(24%+14px)] right-2 top-2 h-[34%] rounded-[9px]" />
+      <span className="absolute bottom-2 left-[calc(24%+14px)] right-2 h-[38%] rounded-[9px] bg-gradient-to-r from-accent-from to-accent-to shadow-[inset_0_1px_0_0_rgb(255_255_255/0.22)]" />
+    </ThemeScope>
   )
 }

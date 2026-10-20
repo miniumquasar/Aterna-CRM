@@ -1,14 +1,16 @@
-/** The AETERNA mark: an accent-gradient tile with a fine Æ. Decorative; the product name is beside it. */
+/** The AETERNA mark: a tile in the accent gradient with a fine Æ in Source Serif. Decorative; the product name is beside it. */
 export function BrandMark({ size = 24 }: { size?: number }): JSX.Element {
   return (
     <span
       aria-hidden
-      className="inline-flex shrink-0 items-center justify-center rounded-[7px] font-display font-semibold text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.25)]"
+      className="inline-flex shrink-0 items-center justify-center font-serif font-semibold text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.28),0_4px_12px_-6px_rgb(var(--accent)/0.8)]"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.52,
-        background: 'linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent) / 0.75) 55%, rgb(var(--accent-2) / 0.9) 100%)'
+        borderRadius: Math.round(size * 0.3),
+        fontSize: size * 0.56,
+        lineHeight: 1,
+        background: 'linear-gradient(140deg, rgb(var(--accent-gradient-from)) 0%, rgb(var(--accent)) 55%, rgb(var(--accent-gradient-to)) 100%)'
       }}
     >
       Æ

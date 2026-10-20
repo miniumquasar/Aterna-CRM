@@ -4,7 +4,7 @@
  * when Windows switches between light and dark, for Auto.
  */
 import { nativeTheme } from 'electron'
-import { isEffectsLevel, isThemeMode } from '@shared/theme/appearance'
+import { isDensity, isEffectsLevel, isThemeMode } from '@shared/theme/appearance'
 import { isPaletteId } from '@shared/theme/palettes'
 import { applyWindowTheme } from '../app/window'
 import { registerJob } from '../jobs'
@@ -25,6 +25,10 @@ export function registerAppearanceHandlers(): void {
     if (patch.mode !== undefined && !isThemeMode(patch.mode)) throw invalid('Choose Day, Night or Auto.', 'mode')
     if (patch.palette !== undefined && !isPaletteId(patch.palette)) throw invalid('That colour theme isn’t available.', 'palette')
     if (patch.effects !== undefined && !isEffectsLevel(patch.effects)) throw invalid('Choose Full, Balanced or Lite effects.', 'effects')
+    if (patch.density !== undefined && !isDensity(patch.density)) throw invalid('Choose Comfortable or Compact.', 'density')
+    for (const key of ['reduceMotion', 'reduceTransparency'] as const) {
+      if (patch[key] !== undefined && typeof patch[key] !== 'boolean') throw invalid('Turn the setting on or off.', key)
+    }
     const prefs = saveAppearance(ctx.db, patch)
     applyWindowTheme(windowColours(prefs, osPrefersDark()))
     return prefs

@@ -9,7 +9,9 @@
  * <ConfirmHost /> is mounted once, in App.
  */
 import { useCallback, useId, type ReactNode } from 'react'
+import { CircleHelp, TriangleAlert } from 'lucide-react'
 import { create } from 'zustand'
+import { cx } from '../../lib/cx'
 import { Dialog } from './Dialog'
 import { GlassButton } from './GlassButton'
 
@@ -70,16 +72,23 @@ export function ConfirmHost(): JSX.Element | null {
       labelledBy={`${id}-title`}
       describedBy={options.body ? `${id}-body` : undefined}
       initialFocus={danger ? '[data-choice="cancel"]' : '[data-choice="confirm"]'}
-      className="glass-raised max-w-md rounded-2xl p-6"
+      className="glass-raised max-w-md rounded-[22px] p-6"
     >
-      <h2 id={`${id}-title`} className="font-display text-lg font-semibold text-fg">
-        {options.title}
-      </h2>
-      {options.body && (
-        <div id={`${id}-body`} className="mt-2 whitespace-pre-line text-sm text-fg-muted">
-          {options.body}
+      <div className="flex items-start gap-4">
+        <span className={cx('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', danger ? 'bg-danger-soft text-danger' : 'bg-accent-soft text-accent-text')} aria-hidden>
+          {danger ? <TriangleAlert size={19} strokeWidth={1.8} /> : <CircleHelp size={19} strokeWidth={1.8} />}
+        </span>
+        <div className="min-w-0 pt-0.5">
+          <h2 id={`${id}-title`} className="text-lg font-semibold leading-7 tracking-[-0.01em] text-fg">
+            {options.title}
+          </h2>
+          {options.body && (
+            <div id={`${id}-body`} className="mt-1.5 whitespace-pre-line text-sm leading-6 text-fg-muted">
+              {options.body}
+            </div>
+          )}
         </div>
-      )}
+      </div>
       <div className="mt-6 flex flex-wrap justify-end gap-2">
         <GlassButton variant="ghost" data-choice="cancel" data-testid="confirm-cancel" onClick={() => answer(false)}>
           {options.cancelLabel ?? 'Cancel'}

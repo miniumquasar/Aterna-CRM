@@ -24,7 +24,7 @@ export interface MoneyInputProps extends Omit<InputHTMLAttributes<HTMLInputEleme
   invalid?: boolean
 }
 
-export function MoneyInput({ value, onChange, allowNegative = false, label, onValidityChange, invalid, onBlur, onFocus, ...rest }: MoneyInputProps): JSX.Element {
+export function MoneyInput({ value, onChange, allowNegative = false, label, onValidityChange, invalid, onBlur, onFocus, className, ...rest }: MoneyInputProps): JSX.Element {
   const [text, setText] = useState('')
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,6 +45,7 @@ export function MoneyInput({ value, onChange, allowNegative = false, label, onVa
       inputMode="decimal"
       autoComplete="off"
       {...rest}
+      className={className ? `tabular ${className}` : 'tabular'}
       value={shown}
       invalid={invalid ?? (error !== null || undefined)}
       leading={<span aria-hidden>£</span>}

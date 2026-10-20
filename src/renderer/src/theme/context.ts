@@ -8,9 +8,14 @@ export interface ThemeContextValue {
   /** Day or Night, after Auto has followed the operating system. */
   mode: ResolvedMode
   palette: Palette
+  /** The current palette's tokens for the current mode (hex and rgba strings, e.g. for chart libraries). */
   tokens: ModeTokens
   /** Whether movement should be reduced (the app's setting or the computer's). */
   reducedMotion: boolean
+  /** Whether surfaces are opaque (the app's setting or the computer's). */
+  reducedTransparency: boolean
+  /** Whether the operating system is in dark mode (what Auto follows). */
+  osDark: boolean
   /** Changes and saves some preferences; the screen updates at once. */
   setPrefs(patch: Partial<AppearancePrefs>): void
 }

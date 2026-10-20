@@ -8,6 +8,8 @@ export interface SegmentedOption<V extends string> {
   label: string
   icon?: LucideIcon
   disabled?: boolean
+  /** A longer hint for the tooltip of an icon-only choice ('Auto: follows Windows'); the label stays its name. */
+  hint?: string
 }
 
 /**
@@ -21,6 +23,7 @@ export interface SegmentedOption<V extends string> {
  * @prop iconOnly  Show icons only; labels become tooltips and accessible names.
  * @prop size      'sm' | 'md' (default).
  * @prop fullWidth Stretch the choices across the container.
+ * @prop tooltipSide Where an icon-only choice's tooltip shows: 'top' | 'bottom' (default).
  */
 export interface SegmentedProps<V extends string> {
   value: V
@@ -30,10 +33,11 @@ export interface SegmentedProps<V extends string> {
   iconOnly?: boolean
   size?: 'sm' | 'md'
   fullWidth?: boolean
+  tooltipSide?: 'top' | 'bottom'
   className?: string
 }
 
-export function Segmented<V extends string>({ value, onChange, options, label, iconOnly = false, size = 'md', fullWidth = false, className }: SegmentedProps<V>): JSX.Element {
+export function Segmented<V extends string>({ value, onChange, options, label, iconOnly = false, size = 'md', fullWidth = false, tooltipSide = 'bottom', className }: SegmentedProps<V>): JSX.Element {
   const refs = useRef<Array<HTMLButtonElement | null>>([])
   const enabled = options.map((o, i) => (o.disabled ? -1 : i)).filter((i) => i >= 0)
   const current = Math.max(0, options.findIndex((o) => o.value === value))
@@ -53,7 +57,7 @@ export function Segmented<V extends string>({ value, onChange, options, label, i
   }
 
   return (
-    <div role="radiogroup" aria-label={label} className={cx('glass-sunken inline-flex gap-0.5 rounded-xl p-0.5', fullWidth && 'flex w-full', className)}>
+    <div role="radiogroup" aria-label={label} className={cx('glass-sunken inline-flex gap-0.5 rounded-xl p-[3px]', fullWidth && 'flex w-full', className)}>
       {options.map((o, i) => {
         const selected = i === current
         const Icon = o.icon
@@ -72,12 +76,12 @@ export function Segmented<V extends string>({ value, onChange, options, label, i
             onClick={() => onChange(o.value)}
             onKeyDown={(e) => move(e, i)}
             className={cx(
-              'inline-flex items-center justify-center gap-1.5 rounded-[10px] font-medium transition duration-150 ease-glass',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus disabled:opacity-40',
+              'inline-flex items-center justify-center gap-1.5 rounded-[9px] font-medium transition duration-150 ease-glass',
+              'focus-visible:outline-offset-1 disabled:cursor-not-allowed disabled:opacity-40',
               size === 'sm' ? 'h-7 text-xs' : 'h-8 text-[13px]',
-              iconOnly ? (size === 'sm' ? 'w-7' : 'w-8') : size === 'sm' ? 'px-2.5' : 'px-3',
+              iconOnly ? (fullWidth ? 'w-full' : size === 'sm' ? 'w-8' : 'w-9') : size === 'sm' ? 'px-2.5' : 'px-3.5',
               fullWidth && 'flex-1',
-              selected ? 'bg-surface-raised text-fg shadow-glass' : 'text-fg-muted hover:text-fg'
+              selected ? 'segment-on' : 'text-fg-muted hover:bg-fg/[0.05] hover:text-fg'
             )}
           >
             {Icon && <Icon size={size === 'sm' ? 14 : 15} aria-hidden strokeWidth={1.9} className="shrink-0" />}
@@ -85,7 +89,7 @@ export function Segmented<V extends string>({ value, onChange, options, label, i
           </button>
         )
         return iconOnly ? (
-          <Tooltip key={o.value} content={o.label} describe={false}>
+          <Tooltip key={o.value} content={o.hint ?? o.label} describe={false} side={tooltipSide} className={fullWidth ? 'flex-1' : undefined}>
             {button}
           </Tooltip>
         ) : (

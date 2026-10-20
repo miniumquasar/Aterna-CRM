@@ -25,11 +25,11 @@ export function Toggle({ checked, onChange, label, description, disabled, labelH
   return (
     <div className={cx('flex items-start justify-between gap-4', className)}>
       <div className={cx('min-w-0', labelHidden && 'sr-only')}>
-        <span id={`${id}-label`} className="text-sm text-fg">
+        <span id={`${id}-label`} className="text-sm font-medium leading-5 text-fg">
           {label}
         </span>
         {description && (
-          <span id={`${id}-desc`} className="block text-xs text-fg-subtle">
+          <span id={`${id}-desc`} className="mt-0.5 block text-[13px] leading-5 text-fg-muted">
             {description}
           </span>
         )}
@@ -43,14 +43,18 @@ export function Toggle({ checked, onChange, label, description, disabled, labelH
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cx(
-          'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors duration-200',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50',
-          checked ? 'border-accent bg-accent' : 'border-line/30 bg-fg/[0.12]'
+          'relative mt-0.5 inline-flex h-[26px] w-[46px] shrink-0 items-center rounded-full border transition-colors duration-200',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          // Off is an outline with a muted knob (as Windows draws it), so the switch stands out at 3:1 either way.
+          checked ? 'border-accent-text bg-gradient-to-r from-accent-from to-accent shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.18)]' : 'border-fg-faint bg-surface-sunken/50 hover:bg-fg/[0.06]'
         )}
       >
         <span
           aria-hidden
-          className={cx('inline-block h-[18px] w-[18px] rounded-full bg-white shadow transition-transform duration-200 ease-glass', checked ? 'translate-x-[22px]' : 'translate-x-[2px]')}
+          className={cx(
+            'inline-block rounded-full transition duration-200 ease-glass',
+            checked ? 'h-5 w-5 translate-x-[22px] bg-accent-fg shadow-[0_1px_3px_0_rgb(0_0_0/0.3),0_0_0_0.5px_rgb(0_0_0/0.06)]' : 'h-4 w-4 translate-x-[4px] bg-fg-muted'
+          )}
         />
       </button>
     </div>

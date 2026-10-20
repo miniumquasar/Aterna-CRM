@@ -49,13 +49,13 @@ export function Checkbox({ checked, onChange, label, description, indeterminate 
       <span
         aria-hidden
         className={cx(
-          'pointer-events-none flex h-full w-full items-center justify-center rounded-[5px] border transition-colors',
-          on ? 'border-accent bg-accent text-accent-fg' : 'border-line/40 bg-fg/[0.04]',
+          'pointer-events-none flex h-full w-full items-center justify-center rounded-[5px] border transition-colors duration-150',
+          on ? 'border-accent-text bg-accent text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.2)]' : 'border-fg-faint bg-surface-sunken/50 peer-hover:border-fg-muted',
           'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus',
           disabled && 'opacity-50'
         )}
       >
-        {indeterminate ? <Minus size={13} strokeWidth={3} /> : checked ? <Check size={13} strokeWidth={3} /> : null}
+        {indeterminate ? <Minus size={13} strokeWidth={3} /> : checked ? <Check size={13} strokeWidth={3} className="check-draw" /> : null}
       </span>
     </span>
   )
@@ -64,11 +64,11 @@ export function Checkbox({ checked, onChange, label, description, indeterminate 
     <div className={cx('flex items-start gap-2.5', className)}>
       <span className="mt-0.5">{box}</span>
       <span className="min-w-0">
-        <label htmlFor={inputId} className={cx('text-sm text-fg', disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer')}>
+        <label htmlFor={inputId} className={cx('text-sm leading-5 text-fg', disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer')}>
           {label}
         </label>
         {description && (
-          <span id={`${inputId}-desc`} className="block text-xs text-fg-subtle">
+          <span id={`${inputId}-desc`} className="block text-xs leading-5 text-fg-muted">
             {description}
           </span>
         )}

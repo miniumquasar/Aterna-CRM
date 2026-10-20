@@ -1,81 +1,236 @@
 /*
- * The spatial-glass look: layered translucency over a deep backdrop, an inner
- * highlight along the top edge, soft depth and a little grain. Effects
- * Full / Balanced / Lite and Reduce transparency change the variables in
- * index.css; nothing here hard-codes a colour.
+ * The spatial-glass look (docs/design/PALETTES.md §7): luminous panels
+ * floating over a soft colour field, each with a hairline, a highlight
+ * along its top edge and soft layered depth. Every colour comes from the
+ * theme's variables; the effects level and Reduce transparency change the
+ * blur, grain and depth in index.css, and the glass alphas in the variables.
+ *
+ *   L0  .app-backdrop   the field: a 145° gradient, glowA top left, glowB bottom centre
+ *   L1  .glass-panel    the sidebar and the main panel (and .glass at the top level)
+ *   L2  .glass          a card on a panel: surfaceRaised laid on L1, no blur of its own
+ *   L3  .glass-raised   menus, popovers, dialogs: L2 with deeper blur and twice the shadow
+ *   ··  .glass-sunken   wells: inputs, tracks, segmented controls
+ *   ··  .app-grain      a fine grain over everything, so long dark gradients never band
  */
+
+/*
+ * Behaviour that differs by scheme, as variables on whatever says its scheme
+ * (the page, or a preview drawn in another theme). Night is already at the
+ * accent's white-text ceiling, so hovering lifts instead of lightening.
+ */
+[data-scheme='light'] {
+  --hover-lift: 0px;
+  --hover-shade: 0.08;
+  --press-shade: 0.14;
+  --danger-fill: rgb(var(--danger));
+  --danger-ink: 255 255 255;
+  --danger-edge: transparent;
+  --grain-blend: soft-light;
+  --segment-on: rgb(var(--solid-raised));
+  --header-fill: rgb(var(--surface-raised) / min(0.9, calc(var(--surface-raised-alpha) + 0.5)));
+  --track-off: rgb(var(--text) / 0.16);
+}
+[data-scheme='dark'] {
+  --hover-lift: -1px;
+  --hover-shade: 0;
+  --press-shade: 0.12;
+  --danger-fill: rgb(var(--danger-soft) / var(--danger-soft-alpha));
+  --danger-ink: var(--danger);
+  --danger-edge: rgb(var(--danger) / 0.45);
+  --grain-blend: overlay;
+  --segment-on: rgb(var(--text) / 0.11);
+  --header-fill: rgb(var(--solid-raised) / 0.82);
+  --track-off: rgb(var(--text) / 0.18);
+}
+
 @layer components {
+  /* ── L0: the colour field ─────────────────────────────────────────────── */
   .app-backdrop {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     background:
-      radial-gradient(60rem 40rem at 12% -10%, rgb(var(--glow-1) / 0.32), transparent 60%),
-      radial-gradient(50rem 36rem at 100% 110%, rgb(var(--glow-2) / 0.28), transparent 60%),
-      linear-gradient(135deg, rgb(var(--backdrop-1)) 0%, rgb(var(--backdrop-2)) 48%, rgb(var(--backdrop-3)) 100%);
-  }
-  .app-backdrop::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: var(--grain-opacity);
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    mix-blend-mode: overlay;
+      radial-gradient(64rem 44rem at 6% -8%, rgb(var(--glow-1) / var(--glow-1-alpha)), transparent 62%),
+      radial-gradient(60rem 38rem at 50% 112%, rgb(var(--glow-2) / var(--glow-2-alpha)), transparent 66%),
+      linear-gradient(145deg, rgb(var(--backdrop-1)) 0%, rgb(var(--backdrop-2)) 50%, rgb(var(--backdrop-3)) 100%);
   }
 
-  .glass {
+  /* The field inside a preview (Settings → Appearance, the design gallery) rather than behind the window. */
+  .app-backdrop.backdrop-contained {
+    position: absolute;
+    border-radius: inherit;
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgb(var(--glow-1) / var(--glow-1-alpha)), transparent 62%),
+      radial-gradient(110% 80% at 50% 115%, rgb(var(--glow-2) / var(--glow-2-alpha)), transparent 66%),
+      linear-gradient(145deg, rgb(var(--backdrop-1)) 0%, rgb(var(--backdrop-2)) 50%, rgb(var(--backdrop-3)) 100%);
+  }
+
+  /* Grain (feTurbulence, 0.8, two octaves), bundled: it stops banding on 8-bit screens. Not decoration. */
+  .app-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend, overlay);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  }
+  html[data-effects='lite'] .app-grain,
+  html[data-transparency='reduce'] .app-grain {
+    display: none;
+  }
+
+  /* ── L1: panels ───────────────────────────────────────────────────────── */
+  .glass,
+  .glass-panel {
+    --tint: transparent;
     background-color: rgb(var(--surface) / var(--surface-alpha));
-    border: 1px solid rgb(var(--border) / var(--border-alpha));
-    box-shadow:
-      inset 0 1px 0 0 rgb(var(--highlight) / var(--highlight-alpha)),
-      0 1px 2px 0 rgb(var(--shadow) / 0.06),
-      0 14px 36px -18px rgb(var(--shadow) / 0.4);
+    background-image:
+      linear-gradient(var(--tint), var(--tint)),
+      linear-gradient(120deg, rgb(var(--sheen-colour) / var(--sheen)) 0%, transparent 40%);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--inner-highlight), var(--glass-depth);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
-
-  .glass-raised {
-    background-color: rgb(var(--surface-raised) / var(--surface-raised-alpha));
-    border: 1px solid rgb(var(--border) / calc(var(--border-alpha) + 0.04));
-    box-shadow:
-      inset 0 1px 0 0 rgb(var(--highlight) / var(--highlight-alpha)),
-      0 30px 80px -30px rgb(var(--shadow) / 0.6);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.4)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(calc(var(--glass-blur) * 1.4)) saturate(var(--glass-saturate));
+  .glass-panel {
+    position: relative;
+    isolation: isolate;
   }
 
+  /* ── L2: a card on a panel (raised on L1; the panel already blurred what is behind) ── */
+  .glass-panel .glass,
+  .glass .glass,
+  .glass-raised .glass {
+    background-color: rgb(var(--surface-raised) / var(--surface-raised-alpha));
+    background-image: linear-gradient(var(--tint), var(--tint));
+    box-shadow: var(--inner-highlight), var(--elev-1), 0 10px 28px -18px rgb(var(--shadow) / var(--shadow-alpha));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Tints for a panel or card in a tone: the soft fill over the glass, and a hairline in the tone. */
+  .tint-accent {
+    --tint: rgb(var(--accent-soft) / var(--accent-soft-alpha));
+    border-color: rgb(var(--accent) / 0.3);
+  }
+  .tint-success {
+    --tint: rgb(var(--success-soft) / var(--success-soft-alpha));
+    border-color: rgb(var(--success) / 0.3);
+  }
+  .tint-warning {
+    --tint: rgb(var(--warning-soft) / var(--warning-soft-alpha));
+    border-color: rgb(var(--warning) / 0.3);
+  }
+  .tint-danger {
+    --tint: rgb(var(--danger-soft) / var(--danger-soft-alpha));
+    border-color: rgb(var(--danger) / 0.32);
+  }
+  .tint-info {
+    --tint: rgb(var(--info-soft) / var(--info-soft-alpha));
+    border-color: rgb(var(--info) / 0.3);
+  }
+
+  /* ── L3: menus, popovers and dialogs float over content, so they are thicker and deeper ── */
+  .glass-raised {
+    background-color: rgb(var(--surface) / min(0.96, calc(var(--surface-alpha) * 1.3)));
+    background-image: linear-gradient(rgb(var(--surface-raised) / var(--surface-raised-alpha)), rgb(var(--surface-raised) / var(--surface-raised-alpha)));
+    border: 1px solid var(--hairline-strong);
+    box-shadow: var(--inner-highlight), var(--elev-1), var(--elev-pop);
+    -webkit-backdrop-filter: blur(var(--glass-blur-pop)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur-pop)) saturate(var(--glass-saturate));
+  }
+  html[data-transparency='reduce'] .glass-raised {
+    background-color: rgb(var(--surface-raised));
+    background-image: none;
+  }
+
+  /* The dimmed layer under a dialog. */
+  .dialog-scrim {
+    background-color: var(--scrim);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+  html[data-effects='lite'] .dialog-scrim,
+  html[data-transparency='reduce'] .dialog-scrim {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* ── Wells ────────────────────────────────────────────────────────────── */
   .glass-sunken {
-    background-color: rgb(var(--text) / 0.04);
-    border: 1px solid rgb(var(--border) / var(--border-alpha));
-    box-shadow: inset 0 1px 2px 0 rgb(var(--shadow) / 0.12);
+    background-color: rgb(var(--surface-sunken) / var(--surface-sunken-alpha));
+    border: 1px solid var(--hairline);
+    box-shadow: inset 0 1px 2px 0 rgb(var(--shadow) / calc(var(--shadow-alpha) * 0.45));
+  }
+
+  /* A sticky table header: the rows scroll under frosted glass. */
+  .glass-header {
+    background-color: var(--header-fill);
+    -webkit-backdrop-filter: blur(14px) saturate(var(--glass-saturate));
+    backdrop-filter: blur(14px) saturate(var(--glass-saturate));
+  }
+  html[data-transparency='reduce'] .glass-header {
+    background-color: rgb(var(--solid-raised));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .hairline {
-    border-color: rgb(var(--border) / var(--border-alpha));
+    border-color: var(--hairline);
+  }
+  .hairline-strong {
+    border-color: var(--hairline-strong);
   }
 
+  /* The chosen segment of a segmented control or pill tabs: a raised pill on the sunken track. */
+  .segment-on {
+    background-color: var(--segment-on);
+    color: rgb(var(--text));
+    box-shadow:
+      var(--inner-highlight),
+      var(--elev-1),
+      0 4px 12px -6px rgb(var(--shadow) / var(--shadow-alpha));
+  }
+
+  /* Selection: the soft accent fill and a 3px bar at the start, as in the brief's sidebar (in the focus colour, which holds 3:1 on the tint). */
+  .is-selected {
+    background-color: rgb(var(--accent-soft) / var(--accent-soft-alpha));
+    box-shadow: inset 3px 0 0 0 rgb(var(--focus));
+  }
+
+  /* ── Fields ───────────────────────────────────────────────────────────── */
   .field-control {
-    background-color: rgb(var(--text) / 0.045);
-    border: 1px solid rgb(var(--border) / calc(var(--border-alpha) + 0.06));
+    background-color: rgb(var(--surface-sunken) / var(--surface-sunken-alpha));
+    border: 1px solid var(--hairline-strong);
     color: rgb(var(--text));
     transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
   }
-  .field-control::placeholder {
-    color: rgb(var(--text-subtle));
+  .field-control::placeholder,
+  .field-control ::placeholder {
+    color: rgb(var(--text-faint));
   }
   .field-control:hover {
-    border-color: rgb(var(--border) / calc(var(--border-alpha) + 0.14));
+    border-color: rgb(var(--text) / 0.28);
   }
   .field-control:focus-within,
   .field-control:focus {
     outline: none;
-    border-color: rgb(var(--focus) / 0.9);
+    border-color: rgb(var(--focus));
     box-shadow: 0 0 0 3px rgb(var(--focus) / 0.22);
+  }
+  /* The box shows the ring for the input inside it. */
+  .field-control:focus-within :focus-visible {
+    outline: none;
+    animation: none;
   }
   .field-control[aria-invalid='true'],
   .field-control[data-invalid='true'] {
     border-color: rgb(var(--danger) / 0.85);
+  }
+  .field-control[data-invalid='true']:focus-within {
+    box-shadow: 0 0 0 3px rgb(var(--danger) / 0.2);
   }
   .field-control:disabled,
   .field-control[data-disabled='true'] {
@@ -83,6 +238,117 @@
     cursor: not-allowed;
   }
 
+  /* ── Buttons ──────────────────────────────────────────────────────────── */
+  .btn {
+    transition:
+      transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    color: rgb(var(--accent-fg));
+    background-color: rgb(var(--accent));
+    background-image: linear-gradient(105deg, rgb(var(--accent-gradient-from)) 0%, rgb(var(--accent-gradient-to)) 100%);
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.2),
+      var(--elev-1),
+      0 8px 22px -12px rgb(var(--accent) / 0.75);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(var(--hover-lift));
+    background-image:
+      linear-gradient(rgb(0 0 0 / var(--hover-shade)), rgb(0 0 0 / var(--hover-shade))),
+      linear-gradient(105deg, rgb(var(--accent-gradient-from)) 0%, rgb(var(--accent-gradient-to)) 100%);
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.32),
+      var(--elev-1),
+      0 14px 30px -12px rgb(var(--accent) / 0.85);
+  }
+  .btn-primary:active:not(:disabled) {
+    background-image: linear-gradient(rgb(var(--accent-active)), rgb(var(--accent-active)));
+  }
+
+  .btn-secondary {
+    color: rgb(var(--text));
+    background-color: rgb(var(--surface-raised) / var(--surface-raised-alpha));
+    background-image: linear-gradient(rgb(var(--text) / 0.03), rgb(var(--text) / 0.03));
+    border: 1px solid var(--hairline-strong);
+    box-shadow: var(--inner-highlight), var(--elev-1);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    transform: translateY(var(--hover-lift));
+    background-image: linear-gradient(rgb(var(--text) / 0.07), rgb(var(--text) / 0.07));
+    box-shadow: var(--inner-highlight), var(--elev-1), 0 10px 24px -16px rgb(var(--shadow) / var(--shadow-alpha));
+  }
+  .btn-secondary:active:not(:disabled) {
+    background-image: linear-gradient(rgb(var(--text) / 0.11), rgb(var(--text) / 0.11));
+  }
+
+  .btn-ghost {
+    color: rgb(var(--text-muted));
+    background-color: transparent;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: rgb(var(--text));
+    background-color: rgb(var(--text) / 0.07);
+  }
+  .btn-ghost:active:not(:disabled) {
+    background-color: rgb(var(--text) / 0.11);
+  }
+
+  .btn-danger {
+    color: rgb(var(--danger-ink));
+    background-color: var(--danger-fill);
+    border: 1px solid var(--danger-edge);
+    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.16), var(--elev-1);
+  }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(var(--hover-lift));
+    background-image: linear-gradient(rgb(0 0 0 / var(--hover-shade)), rgb(0 0 0 / var(--hover-shade)));
+    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.22), var(--elev-1), 0 10px 24px -14px rgb(var(--danger) / 0.6);
+  }
+  .btn-danger:active:not(:disabled) {
+    background-image: linear-gradient(rgb(0 0 0 / var(--press-shade)), rgb(0 0 0 / var(--press-shade)));
+  }
+
+  /* A surface that is itself clickable: it lifts towards the pointer. */
+  .lift {
+    transition:
+      transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 160ms ease;
+  }
+  .lift:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 0 rgb(var(--highlight) / min(1, calc(var(--highlight-alpha) * 1.6))),
+      var(--elev-1),
+      0 18px 40px -18px rgb(var(--shadow) / min(1, calc(var(--shadow-alpha) * 1.4)));
+  }
+
+  /* ── The pointer highlight (Full only, never under reduced motion) ───── */
+  .specular {
+    position: absolute;
+    inset: 0;
+    /* Under the content, over the panel's own glass (the panel isolates). */
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 420ms ease;
+    background: radial-gradient(34rem circle at var(--spec-x, 50%) var(--spec-y, -30%), rgb(255 255 255 / 0.06), transparent 40%);
+  }
+  html[data-effects='full'][data-motion='full'][data-transparency='full'] .specular[data-active='true'] {
+    opacity: 1;
+  }
+
+  /* ── Bits of the shell ───────────────────────────────────────────────── */
   /* A strip that scrolls sideways (tabs) without showing a scrollbar. */
   .scroll-strip {
     overflow-x: auto;
@@ -110,5 +376,48 @@
   .titlebar .no-drag {
     -webkit-app-region: no-drag;
     app-region: no-drag;
+  }
+
+  /* A check stroke that draws itself (a chosen theme, “Paid”). */
+  .check-draw path,
+  .check-draw polyline {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+    animation: check-draw 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes check-draw {
+    from {
+      stroke-dashoffset: 24;
+    }
+  }
+}
+
+/* ── Windows high contrast and other forced colours: no glass, the system's colours ── */
+@media (forced-colors: active) {
+  .app-backdrop,
+  .app-grain,
+  .specular {
+    display: none;
+  }
+  .glass,
+  .glass-panel,
+  .glass-raised,
+  .glass-sunken,
+  .glass-header,
+  .field-control,
+  .btn-secondary {
+    background: Canvas !important;
+    color: CanvasText;
+    border: 1px solid CanvasText !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .btn-primary,
+  .btn-danger,
+  .is-selected {
+    background: Highlight !important;
+    color: HighlightText !important;
+    forced-color-adjust: none;
   }
 }

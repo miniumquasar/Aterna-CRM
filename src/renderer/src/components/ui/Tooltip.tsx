@@ -12,6 +12,7 @@ import { cx } from '../../lib/cx'
  * @prop delayMs   Wait before showing on hover (default 350 ms; focus shows at once).
  * @prop describe  Default true.
  * @prop disabled  Never show.
+ * @prop className Classes for the wrapper (e.g. 'flex-1' to let the element inside stretch).
  */
 export interface TooltipProps {
   content: ReactNode
@@ -20,6 +21,7 @@ export interface TooltipProps {
   delayMs?: number
   describe?: boolean
   disabled?: boolean
+  className?: string
 }
 
 const SIDE: Record<NonNullable<TooltipProps['side']>, string> = {
@@ -29,7 +31,7 @@ const SIDE: Record<NonNullable<TooltipProps['side']>, string> = {
   right: 'left-full top-1/2 ml-2 -translate-y-1/2'
 }
 
-export function Tooltip({ content, children, side = 'bottom', delayMs = 350, describe = true, disabled = false }: TooltipProps): JSX.Element {
+export function Tooltip({ content, children, side = 'bottom', delayMs = 350, describe = true, disabled = false, className }: TooltipProps): JSX.Element {
   const id = useId()
   const [open, setOpen] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,14 +65,14 @@ export function Tooltip({ content, children, side = 'bottom', delayMs = 350, des
       })
     : children
   return (
-    <span className="relative inline-flex" onMouseEnter={() => show(false)} onMouseLeave={hide} onFocus={() => show(true)} onBlur={hide}>
+    <span className={cx('relative inline-flex', className)} onMouseEnter={() => show(false)} onMouseLeave={hide} onFocus={() => show(true)} onBlur={hide}>
       {child}
       {open && (
         <span
           id={id}
           role="tooltip"
           className={cx(
-            'glass-raised pointer-events-none absolute z-[80] w-max max-w-xs animate-fade-in rounded-lg px-2.5 py-1.5 text-xs font-medium text-fg',
+            'glass-raised pointer-events-none absolute z-[80] w-max max-w-xs animate-fade-in rounded-[10px] px-2.5 py-1.5 text-xs font-medium leading-4 text-fg',
             SIDE[side]
           )}
         >
