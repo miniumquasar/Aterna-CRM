@@ -135,12 +135,7 @@ function SignInCard({
         </AuthNotice>
       )}
       {blocked && (
-        <AuthNotice
-          alert
-          tone={problem.code === 'locked' ? 'warning' : 'danger'}
-          icon={problem.code === 'locked' ? LockKeyhole : ShieldOff}
-          title={problem.code === 'locked' ? 'This account is locked' : 'Access turned off'}
-        >
+        <AuthNotice alert tone={problem.code === 'locked' ? 'warning' : 'danger'} icon={problem.code === 'locked' ? LockKeyhole : ShieldOff} strong>
           {problem.message}
         </AuthNotice>
       )}

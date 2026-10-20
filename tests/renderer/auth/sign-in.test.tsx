@@ -54,8 +54,8 @@ describe('the sign-in screen', () => {
     await user.type(screen.getByLabelText('Password'), 'anything at all')
     await user.click(screen.getByRole('button', { name: 'Sign in' }))
     const note = await screen.findByRole('alert')
-    expect(within(note).getByText('This account is locked')).toBeTruthy()
-    expect(note.textContent).toMatch(/Ask a partner to unlock it/)
+    expect(note.textContent).toBe('This account is locked after too many wrong passwords. Ask a partner to unlock it in Settings → People.')
+    expect(within(note).queryByRole('heading')).toBeNull()
   })
 
   it('shows and hides the password, and says when Caps Lock is on', async () => {
@@ -121,7 +121,8 @@ describe('the sign-in screen', () => {
     await user.type(screen.getByLabelText('Invitation code'), '-efgh-jkmn')
     await user.click(screen.getByRole('button', { name: 'Check the code' }))
     expect(await screen.findByRole('heading', { name: 'Welcome, Jane' })).toBeTruthy()
-    expect(screen.getByText(/Pat Partner invited you to join Alder & Birch LLP as/)).toBeTruthy()
+    expect(screen.getByText('Pat Partner invited you to join Alder & Birch LLP.')).toBeTruthy()
+    expect(screen.getByText('You see every client and the practice’s work, and assign clients.')).toBeTruthy()
     expect((screen.getByLabelText('Username') as HTMLInputElement).value).toBe('jane.smith')
     await user.type(screen.getByLabelText('Password'), 'a long password here')
     await user.type(screen.getByLabelText('Password again'), 'a long password here')

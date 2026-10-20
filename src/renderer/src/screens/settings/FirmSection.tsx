@@ -79,7 +79,7 @@ function FirmForm({ view }: { view: FirmView }): JSX.Element {
           serverError={serverError}
         />
       ))}
-      <div className="hairline sticky bottom-0 -mx-7 -mb-7 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t bg-surface-raised/80 px-7 py-4 backdrop-blur">
+      <div className="hairline sticky bottom-0 -mx-7 -mb-7 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t bg-surface-raised/95 px-7 py-4 backdrop-blur">
         <p className="text-xs text-fg-subtle">{view.details?.updatedAt ? `Last changed ${formatInstant(view.details.updatedAt)}.` : 'Not saved yet.'}</p>
         <div className="flex gap-2">
           {dirty && (

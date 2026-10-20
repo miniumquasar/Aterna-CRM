@@ -65,7 +65,7 @@ function InviteForm({ onClose, firmName }: { onClose: () => void; firmName: stri
       }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Field label="Their name" error={errors.name} required>
+        <Field label="Their name" hint="As the practice should show it." error={errors.name} required>
           <TextInput value={name} onChange={(e) => setName(e.target.value)} autoFocus autoComplete="off" data-testid="invite-name" />
         </Field>
         <Field label="Email" optional hint="To send them the code from your mail app." error={errors.email}>

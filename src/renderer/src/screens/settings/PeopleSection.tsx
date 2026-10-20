@@ -82,17 +82,15 @@ export default function PeopleSection(): JSX.Element {
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="people-heading">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 id="people-heading" className="font-display text-[15px] font-semibold text-fg">
-              Everyone who can sign in
-            </h3>
-            <p className="text-[13px] text-fg-muted">
-              {plural(everyone.length, 'person', 'people')}
-              {signedIn ? ` · ${signedIn} signed in now` : ''}
-              {invites.length ? ` · ${plural(invites.length, 'invitation')} waiting` : ''}
-            </p>
-          </div>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h3 id="people-heading" className="sr-only">
+            Everyone who can sign in
+          </h3>
+          <p className="text-sm text-fg-muted">
+            <span className="font-medium text-fg">{plural(everyone.length, 'person', 'people')}</span>
+            {signedIn ? ` · ${signedIn} signed in now` : ''}
+            {invites.length ? ` · ${plural(invites.length, 'invitation')} waiting` : ''}
+          </p>
           <GlassButton variant="primary" icon={UserPlus} onClick={() => setInviting(true)} data-testid="people-invite">
             Invite someone
           </GlassButton>

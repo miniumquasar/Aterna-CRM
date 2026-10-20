@@ -73,13 +73,28 @@ export function AuthCard({ id, eyebrow, title, subtitle, children, links }: Auth
 }
 
 /** A short note in the card: why the person is here, or what stopped them. */
-export function AuthNotice({ tone, icon: Icon, title, children, alert = false }: { tone: 'info' | 'warning' | 'danger'; icon: typeof ShieldCheck; title?: string; children: ReactNode; alert?: boolean }): JSX.Element {
+export function AuthNotice({
+  tone,
+  icon: Icon,
+  title,
+  children,
+  alert = false,
+  strong = false
+}: {
+  tone: 'info' | 'warning' | 'danger'
+  icon: typeof ShieldCheck
+  title?: string
+  children: ReactNode
+  alert?: boolean
+  /** The message itself in full-strength text (it says everything; there is no title). */
+  strong?: boolean
+}): JSX.Element {
   return (
     <GlassPanel tone={tone} padding="sm" radius="lg" role={alert ? 'alert' : 'status'} className="mb-5 flex items-start gap-3">
       <Icon size={18} aria-hidden className={tone === 'info' ? 'mt-0.5 shrink-0 text-info' : tone === 'warning' ? 'mt-0.5 shrink-0 text-warning' : 'mt-0.5 shrink-0 text-danger'} />
       <div className="min-w-0 text-[13px] leading-5 text-fg">
         {title && <p className="font-semibold">{title}</p>}
-        <div className={title ? 'mt-0.5 text-fg-muted' : 'text-fg-muted'}>{children}</div>
+        <div className={title ? 'mt-0.5 text-fg-muted' : strong ? 'font-medium text-fg' : 'text-fg-muted'}>{children}</div>
       </div>
     </GlassPanel>
   )

@@ -8,13 +8,12 @@ import { useState } from 'react'
 import { ArrowLeft, ArrowRight, CalendarClock, CircleAlert, UserPlus } from 'lucide-react'
 import {
   MIN_PASSWORD_LENGTH,
-  ROLE_DESCRIPTIONS,
   normaliseInviteCode,
   passwordProblem,
   usernameProblem,
   type InvitePreview
 } from '@shared/contracts/auth'
-import { ROLE_LABELS } from '@shared/domain/roles'
+import { ROLE_LABELS, type Role } from '@shared/domain/roles'
 import { PasswordField } from '@renderer/components/session/PasswordField'
 import { Field, GlassBadge, GlassButton, TextInput } from '@renderer/components/ui'
 import { useApiMutation } from '@renderer/lib/api'
@@ -22,6 +21,13 @@ import { formatDate } from '@renderer/lib/format'
 import { rememberUsername, setSignOutNotice } from '@renderer/stores/session'
 import { instantToLondonDate } from '@shared/domain/dates'
 import { AuthCard } from './AuthLayout'
+
+/** What the role means, said to the person joining. */
+const FOR_YOU: Record<Role, string> = {
+  partner: 'You can do everything, including people, the vault and the licence.',
+  manager: 'You see every client and the practice’s work, and assign clients.',
+  staff: 'You see the clients assigned to you, and their records.'
+}
 
 export function InviteFlow({ onBack }: { onBack: () => void }): JSX.Element {
   const [code, setCode] = useState('')
@@ -129,9 +135,14 @@ function InviteDetails({ code, preview, onBack }: { code: string; preview: Invit
     >
       <div className="mb-5 rounded-xl bg-fg/[0.04] px-4 py-3">
         <p className="text-[13px] leading-5 text-fg">
-          {who} invited you to join {where} as <GlassBadge tone="accent" size="sm">{ROLE_LABELS[preview.role]}</GlassBadge>
+          {who} invited you to join {where}.
         </p>
-        <p className="mt-1 text-xs text-fg-muted">{ROLE_DESCRIPTIONS[preview.role]}.</p>
+        <p className="mt-2 flex items-start gap-2 text-xs text-fg-muted">
+          <GlassBadge tone="accent" size="sm" className="shrink-0">
+            {ROLE_LABELS[preview.role]}
+          </GlassBadge>
+          <span className="pt-0.5">{FOR_YOU[preview.role]}</span>
+        </p>
         <p className="mt-2 flex items-center gap-1.5 text-xs text-fg-subtle">
           <CalendarClock size={13} aria-hidden />
           The invitation expires on {formatDate(instantToLondonDate(preview.expiresAt))}.
@@ -145,7 +156,7 @@ function InviteDetails({ code, preview, onBack }: { code: string; preview: Invit
           submit()
         }}
       >
-        <Field label="Your name" hint="As the practice should show it." error={errors.name}>
+        <Field label="Your name" error={errors.name}>
           <TextInput value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
         </Field>
         <Field label="Username" hint="What you’ll type to sign in." error={errors.username}>

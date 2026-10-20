@@ -69,7 +69,7 @@ export default function PartnerStep({ draft, next, back }: SetupStepProps): JSX.
         Partners can do everything, including inviting the rest of the practice once setup is done.
       </p>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Field label="Your name" error={errors.name} required>
+        <Field label="Your name" hint="As the practice should show it." error={errors.name} required>
           <TextInput
             value={name}
             onChange={(e) => {

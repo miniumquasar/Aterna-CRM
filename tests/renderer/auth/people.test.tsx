@@ -54,7 +54,7 @@ describe('Settings → People', () => {
       'people.removalCheck': () => ok({ canRemove: false, links: [{ label: '12 clients they look after', count: 12 }], reason: 'Sam Staff can’t be removed while there are records under them.' })
     })
     renderWithApp(<PeopleSection />)
-    expect(await screen.findByText('2 people · 1 signed in now · 1 invitation waiting')).toBeTruthy()
+    expect(await screen.findByText((_text, el) => el?.tagName === 'P' && el.textContent === '2 people · 1 signed in now · 1 invitation waiting')).toBeTruthy()
     expect(screen.getByText('Sam Staff’s account is locked.', { exact: false })).toBeTruthy()
     expect(screen.getByText('Jane Smith')).toBeTruthy()
     const user = userEvent.setup()

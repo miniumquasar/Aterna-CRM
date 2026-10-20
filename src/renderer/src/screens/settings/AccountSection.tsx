@@ -57,8 +57,8 @@ function You({ account }: { account: Account }): JSX.Element {
           {account.email ? ` · ${account.email}` : ''}
         </p>
         <p className="text-xs text-fg-subtle">
-          {account.passwordChangedAt ? `Password last changed ${formatRelative(account.passwordChangedAt)}.` : 'Password not changed since the account was made.'} A partner changes your name, email and role
-          {account.role === 'partner' ? ' (another partner, for your own)' : ''}.
+          {account.passwordChangedAt ? `Password last changed ${formatRelative(account.passwordChangedAt)}.` : 'Password not changed since the account was made.'}{' '}
+          {account.role === 'partner' ? 'Change your name or email in People; another partner changes your role.' : 'A partner changes your name, email and role.'}
         </p>
       </div>
       {account.role === 'partner' && (
