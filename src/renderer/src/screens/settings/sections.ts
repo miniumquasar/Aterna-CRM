@@ -41,9 +41,9 @@ export interface SettingsSection {
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { id: 'appearance', title: 'Appearance', description: 'Day, Night or Auto, colour theme and effects', icon: Palette, minRole: 'staff', component: lazy(() => import('./AppearanceSection')) },
-  { id: 'account', title: 'Your sign-in', description: 'Your password', icon: UserRound, minRole: 'staff', component: lazy(() => import('./AccountSection')) },
+  { id: 'account', title: 'Your sign-in', description: 'Your password and when you are signed out', icon: UserRound, minRole: 'staff', component: lazy(() => import('./AccountSection')) },
   { id: 'firm', title: 'Firm details', description: 'The practice’s name, address and references', icon: Building, minRole: 'staff', component: lazy(() => import('./FirmSection')) },
-  { id: 'people', title: 'People', description: 'Who can sign in, and their roles', icon: Users, minRole: 'partner', component: lazy(() => import('./PeopleSection')) },
+  { id: 'people', title: 'People', description: 'Who can sign in, invitations and sign-out time', icon: Users, minRole: 'partner', component: lazy(() => import('./PeopleSection')) },
   { id: 'email', title: 'Email', description: 'How email to clients is sent', icon: Mail, minRole: 'manager', component: lazy(() => import('./EmailSection')) },
   { id: 'backups', title: 'Backups', description: 'Automatic backups, restore and the recovery sheet', icon: DatabaseBackup, minRole: 'manager', component: lazy(() => import('./BackupsSection')) },
   { id: 'licence', title: 'Licence', description: 'The licence and its key', icon: KeyRound, minRole: 'staff', component: lazy(() => import('./LicenceSection')) },

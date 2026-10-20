@@ -4,7 +4,8 @@
  *
  *   1. the first-run wizard: the firm's name and the first partner, then the
  *      remaining steps skipped and setup finished;
- *   2. sign out, and sign in again through the sign-in screen;
+ *   2. sign out, open the invitation-code page and come back, and sign in
+ *      again through the sign-in screen;
  *   3. every route in src/renderer/src/navigation/routes.ts, in Day and in
  *      Night (sidebar routes by clicking the sidebar, the rest by address),
  *      plus Go to… (Ctrl+K);
@@ -60,6 +61,8 @@ try {
 
   // ── 1. First run ────────────────────────────────────────────────────────
   step('first-run wizard')
+  // The splash covers the window for under a second at each start.
+  await page.getByTestId('splash').waitFor({ state: 'detached' }).catch(() => undefined)
   await page.getByTestId('setup-firm-name').fill('Smoke Test Practice LLP')
   await page.screenshot({ path: join(shots, 'setup-firm.png') })
   await page.getByRole('button', { name: 'Continue' }).click()
@@ -81,6 +84,12 @@ try {
   // ── 2. Sign out, sign in ─────────────────────────────────────────────────
   step('sign out and sign in')
   await page.getByRole('button', { name: 'Sign out' }).click()
+  await page.getByTestId('sign-in-username').waitFor()
+  // The invitation flow's first page, and back.
+  await page.getByTestId('sign-in-invite').click()
+  await page.getByTestId('invite-code').waitFor()
+  await page.screenshot({ path: join(shots, 'invite-code.png') })
+  await page.getByRole('button', { name: 'Back to the sign-in page' }).click()
   await page.getByTestId('sign-in-username').waitFor()
   await page.getByTestId('sign-in-username').fill('sam.smoke')
   await page.getByTestId('sign-in-password').fill('not the password')

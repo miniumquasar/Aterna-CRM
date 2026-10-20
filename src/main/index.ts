@@ -44,6 +44,16 @@ import { StartupFailure, StartupRunner } from './startup/steps'
 
 const runner = new StartupRunner(9)
 
+// The product is UK-only: dates as dd/mm/yyyy and en-GB number and date
+// defaults on any Windows locale (date boxes otherwise follow the system's).
+// Switches must be set before the app is ready.
+app.commandLine.appendSwitch('lang', 'en-GB')
+
+// Tests and smoke runs (AETERNA_DATA_DIR) keep Chromium's own profile (page
+// storage, caches and the single-instance lock) inside their data folder, so
+// each run starts clean and runs from several checkouts don't collide.
+if (process.env.AETERNA_DATA_DIR?.trim()) app.setPath('userData', join(resolveDataRoot(app.getPath('appData')), 'chromium-profile'))
+
 async function start(): Promise<void> {
   // 1 ─ One copy at a time, with the right identity on Windows.
   const first = await runner.run(1, 'Single-instance lock and app ID', () => {

@@ -104,12 +104,39 @@ the foundation settled while it was being built.
   `ModeTokens` shape if you update every use. `components/layout/Splash.tsx` is the splash slot
   App.tsx renders over everything (render null when done). Effects levels and Reduce transparency
   are wired through data attributes on `<html>` and `styles/index.css` / `glass.css`.
+  What the design system now offers every screen (all from `@renderer/components/ui` unless
+  named): `<Amount pence={n} />` for money (tabular, small £, quiet pence, negatives in
+  brackets; `whole`, `symbol={false}`, `negative='minus'`); `<Reference label="UTR">…</Reference>`
+  or the `ref-figures` class for references (slashed zero), and `tabular` for any column of
+  figures; `<GlassBadge tone="success" dot>Paid</GlassBadge>` for a status (never colour a whole
+  row); `RadioCards`, `Skeleton`; chart colours from `useTheme().tokens.chart` (8),
+  `chartSequential` and `chartDiverging` (5 each), or the Tailwind colours `chart-1…8`,
+  `seq-1…5`, `div-1…5` (a series meaning good or bad wears the success / danger tokens);
+  soft tints `bg-success-soft` and friends; opaque `bg-surface*` for sticky bars; `font-serif`
+  only for page titles, client-file headers and empty-state headlines (PageHeader and EmptyState
+  already use it); `data-print="hide"` and `data-print-flow` for print; `<ThemeScope>` from
+  `@renderer/theme` to draw a subtree in another palette; `useReducedMotion()` /
+  `useFullEffects()` from `@renderer/theme` for anything that animates. The font licences
+  (`src/renderer/src/assets/fonts/*-OFL.txt`, sources in `SOURCES.txt`) must be shown in the
+  app's notices (release, About).
 - **auth:** App.tsx gates on `auth.status`'s `setupNeeded`, `setupComplete`, `signedIn`, `actor`
   and `firmName`; keep those fields. Replace session resolution with `setSessionResolver()` in
   `src/main/ipc/context.ts` (idle sign-out, last-seen times). Sessions are bound to the window and
   end when it closes; open sessions are closed as `app_restarted` at start-up. Settings → Your
   sign-in is `screens/settings/AccountSection.tsx`. Keep the backup domain's `RestoreOffer` that
   SetupWizard renders while `setupNeeded`. `auth.signIn` and `auth.signOut` are `audited: false`.
+  What auth offers the other domains. Main process, from `src/main/auth`:
+  `requireRecentReauth(ctx, 'print the recovery sheet')` in a protected handler (refuses with
+  `{ code: 'forbidden', field: 'reauth' }` unless the password was entered on this window in the
+  last 5 minutes); `registerPersonLinkCheck({ id, count(db, userId), describe(n) })` for every
+  table whose rows name a person, so removing that person is refused with your records named;
+  `registerSetupProbe('recovery' | 'vault' | 'licence' | 'import', (db) => boolean | null)` from
+  your register function, so the first-run wizard knows whether your step's work is done (null:
+  it doesn't apply); `activePeople(db)`, `readFirm(db)` and `firmName(db)`. Renderer:
+  `withReauth()` / `ensureRecentReauth()` from `components/session/reauth.ts` (the dialog is
+  already mounted by the shell, through IdleWarning, and by the setup wizard); `PasswordField`
+  from `components/session/PasswordField.tsx` for any password or passphrase box; the channel
+  `people.directory` for person pickers and `firm.get` for the firm's details.
 - **licence:** replace `src/main/licence/gate.ts`, keeping `isReadOnly()` and `licenceHolder()`.
   Fill `startLicence()` in `src/main/licence/startup.ts` (step 5; may return a Promise) and the tool
   in `tools/licence-generator/`.
@@ -127,6 +154,10 @@ the foundation settled while it was being built.
   come from `dataPaths()` (`src/main/app/paths.ts`). `DatabaseOpenError.reason` is one of
   `wrong_key`, `busy`, `orphaned_log`, `set_aside_failed`, `invalid_key` or `create_failed`;
   `KeyFileError.reason` is `missing`, `unreadable` or `exists`.
+- **navigation:** the sidebar holds at most 14 entries (the brief). Activity, Onboarding gaps
+  and Practice details have no sidebar entry: insights links to Activity from the bell and
+  Home, clients and compliance link to Onboarding gaps from Clients and Home, and Settings →
+  Firm details already links to Practice details. All three are in Go to….
 - **references:** fill `screens/settings/VaultSection.tsx` (partner only: per-firm switch,
   passphrase change, sheet) and `screens/practice/searchProvider.ts` ("whose reference is this?").
 - **compliance / work:** Go to… providers at `screens/compliance/searchProvider.ts` and

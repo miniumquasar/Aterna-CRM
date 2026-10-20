@@ -314,7 +314,10 @@ Screens use these and nothing else for surfaces and controls, so the theme reach
 header, keyboard row navigation, empty state), `Field`, `TextInput`, `TextArea`, `Select`,
 `DateInput`, `MoneyInput`, `Checkbox`, `Toggle`, `Segmented`, `Tabs`, `SearchInput`,
 `PageHeader` (title, subtitle, actions), `StatTile`, `EmptyState`, `Loading`, `LoadProblem`
-(message + Try again), `Tooltip`, `Avatar`, `ProgressRing`, `Kbd`.
+(message + Try again), `Tooltip`, `Avatar`, `ProgressRing`, `Kbd`, `RadioCards` (choice cards),
+`Amount` (money: tabular, small £, negatives in brackets), `Reference` (slashed zero) and
+`Skeleton`. `theme/` adds `ThemeScope` (a subtree in another palette), `useReducedMotion()` and
+`useFullEffects()`.
 
 Every interactive element has a visible focus ring and an accessible name. Respect
 `prefers-reduced-motion` and the app's own "Reduce motion" setting.
