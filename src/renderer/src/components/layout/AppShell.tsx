@@ -101,7 +101,8 @@ export function AppShell({ actor, firmName }: AppShellProps): JSX.Element {
             <ScreenBoundary resetKey={routeKey}>
               <Suspense fallback={<Loading label={`Opening ${route.title}…`} />}>
                 {allowed ? (
-                  <Screen key={routeKey} params={location.params} />
+                  // Keyed by route only: a change of params (a tab, a section, another client) keeps the screen mounted and focus in place.
+                  <Screen key={location.id} params={location.params} />
                 ) : (
                   <EmptyState title={`${route.title} isn’t open to you`} body="Ask a partner if you need it." />
                 )}

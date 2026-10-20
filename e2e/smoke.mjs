@@ -121,6 +121,16 @@ try {
   await page.keyboard.press('Enter')
   await page.locator('main[data-route="deadlines"] h1').waitFor()
 
+  // ── Tabs keep focus while they change the route's params ─────────────────
+  step('client file tabs by keyboard')
+  await page.evaluate(() => {
+    window.location.hash = '#/clientFile?clientId=1'
+  })
+  await page.getByRole('tab', { name: 'Overview' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await page.waitForFunction(() => document.activeElement?.getAttribute('role') === 'tab' && document.activeElement?.textContent?.includes('Contacts'))
+  await page.waitForFunction(() => window.location.hash.includes('tab=contacts'))
+
   // ── Settings → Appearance changes the theme ─────────────────────────────
   step('Settings → Appearance')
   await sidebar.locator('[data-nav="settings"]').click()
