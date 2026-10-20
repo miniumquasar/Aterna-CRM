@@ -22,6 +22,13 @@ export interface ChannelFlags {
   readonly auth?: 'public'
   /** A write still allowed after the licence lapses (licence entry, backups, appearance, sign-out, exports). */
   readonly allowWhenReadOnly?: true
+  /**
+   * false for the few writes whose changes deliberately stay out of the audit
+   * log (sessions and sign-in history, which have their own tables; this PC's
+   * preferences). Every other write records its change with recordChange():
+   * the registry notices one that changed rows without an audit entry.
+   */
+  readonly audited?: false
 }
 
 /** Exactly one flags entry per channel in the contract `T`. */

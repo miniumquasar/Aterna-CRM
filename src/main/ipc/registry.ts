@@ -12,6 +12,10 @@
  *      unless the channel is `allowWhenReadOnly`;
  *   5. the handler runs. A thrown UserFacingError becomes its Result; anything
  *      else becomes 'internal', with the detail logged and never sent.
+ *
+ * After a write (unless its flags say `audited: false`), the registry checks
+ * that if rows changed, an audit entry was added too; one that wasn't goes
+ * to `onUnauditedWrite` (logged in the app; createTestIpc fails the test).
  */
 import { CHANNELS, isChannel, type Channel, type Req, type Res } from '@shared/ipc/contract'
 import { fail, ok, type Result } from '@shared/ipc/result'
@@ -51,6 +55,19 @@ export interface RegistryDeps {
   now: () => Date
   emit: Emit
   isReadOnly: () => boolean
+  /** A write changed rows without adding an audit entry. Defaults to a warning in the log. */
+  onUnauditedWrite?: (channel: Channel) => void
+}
+
+interface WriteMark {
+  changes: number
+  lastAuditId: number
+}
+
+/** How many rows this connection has changed so far, and the newest audit entry. */
+function writeMark(db: Db): WriteMark {
+  const row = db.prepare('SELECT total_changes() AS changes, (SELECT max(id) FROM audit_log) AS lastAuditId').get() as { changes: number; lastAuditId: number | null }
+  return { changes: row.changes, lastAuditId: row.lastAuditId ?? 0 }
 }
 
 export function defaultRegistryDeps(): RegistryDeps {
@@ -87,7 +104,15 @@ export async function dispatch(deps: RegistryDeps, senderId: number, channel: un
       return fail('unavailable', MESSAGES.notReady)
     }
     const ctx = createContext({ db, senderId, actor, now: deps.now, emit: deps.emit, log: deps.log.child(channel) })
+    const mark = flags.kind === 'write' && flags.audited !== false ? writeMark(db) : null
     const data = await handler(req, ctx)
+    if (mark) {
+      const after = writeMark(db)
+      if (after.changes > mark.changes && after.lastAuditId === mark.lastAuditId) {
+        if (deps.onUnauditedWrite) deps.onUnauditedWrite(channel)
+        else deps.log.warn(`${channel} changed stored data without an audit entry (recordChange).`)
+      }
+    }
     return ok(data)
   } catch (err) {
     if (isUserFacingError(err)) return fail(err.code, err.message, err.field)

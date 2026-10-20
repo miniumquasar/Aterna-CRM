@@ -5,6 +5,10 @@
  *   const ipc = createTestIpc(db)
  *   ipc.signInAs('staff')
  *   const result = await ipc.call('clients.list', { … })
+ *
+ * A write channel that changes rows without an audit entry (recordChange)
+ * throws here, failing the test, unless its flags say `audited: false` or
+ * the test passes `allowUnaudited`.
  */
 import type { Role } from '@shared/domain/roles'
 import type { Channel, Req, Res } from '@shared/ipc/contract'
@@ -43,12 +47,13 @@ export function registerAllForTest(): void {
   registerAllHandlers()
 }
 
-export function createTestIpc(db: Db, options: { readOnly?: boolean; now?: () => Date; register?: boolean } = {}): TestIpc {
+export function createTestIpc(db: Db, options: { readOnly?: boolean; now?: () => Date; register?: boolean; allowUnaudited?: boolean } = {}): TestIpc {
   if (options.register !== false) registerAllForTest()
   clearSessionBindings()
   const senderId = nextSender++
   const log = createMemoryLogger()
   const events: TestIpc['events'] = []
+  const unaudited: string[] = []
   const deps: RegistryDeps = {
     getDb: () => db,
     log,
@@ -56,10 +61,17 @@ export function createTestIpc(db: Db, options: { readOnly?: boolean; now?: () =>
     emit: (event, payload) => {
       events.push({ event, payload })
     },
-    isReadOnly: () => options.readOnly ?? false
+    isReadOnly: () => options.readOnly ?? false,
+    onUnauditedWrite: (channel) => void unaudited.push(channel)
   }
-  const call = <C extends Channel>(channel: C, req: Req<C>): Promise<Result<Res<C>>> =>
-    dispatch(deps, senderId, channel, req) as Promise<Result<Res<C>>>
+  const call = async <C extends Channel>(channel: C, req: Req<C>): Promise<Result<Res<C>>> => {
+    const result = (await dispatch(deps, senderId, channel, req)) as Result<Res<C>>
+    const missed = unaudited.splice(0)
+    if (missed.length && !options.allowUnaudited) {
+      throw new Error(`${missed.join(', ')} changed stored data without an audit entry: call recordChange() in the same transaction.`)
+    }
+    return result
+  }
   return {
     senderId,
     deps,

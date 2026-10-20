@@ -16,5 +16,5 @@ export interface AppearanceContract {
 
 export const appearanceChannels = {
   'appearance.get': { kind: 'read', auth: 'public' },
-  'appearance.set': { kind: 'write', auth: 'public', allowWhenReadOnly: true }
+  'appearance.set': { kind: 'write', auth: 'public', allowWhenReadOnly: true, audited: false }
 } as const satisfies ChannelTable<AppearanceContract>

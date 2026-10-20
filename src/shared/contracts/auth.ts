@@ -43,8 +43,8 @@ export interface AuthContract {
 
 export const authChannels = {
   'auth.status': { kind: 'read', auth: 'public' },
-  'auth.signIn': { kind: 'write', auth: 'public', allowWhenReadOnly: true },
-  'auth.signOut': { kind: 'write', auth: 'public', allowWhenReadOnly: true },
+  'auth.signIn': { kind: 'write', auth: 'public', allowWhenReadOnly: true, audited: false },
+  'auth.signOut': { kind: 'write', auth: 'public', allowWhenReadOnly: true, audited: false },
   'setup.createFirstPartner': { kind: 'write', auth: 'public' },
   'setup.finish': { kind: 'write', allowWhenReadOnly: true }
 } as const satisfies ChannelTable<AuthContract>

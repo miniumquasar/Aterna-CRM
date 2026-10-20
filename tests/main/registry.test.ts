@@ -102,3 +102,43 @@ describe('the IPC registry', () => {
     expect(await ipc.call('setup.finish', undefined)).toMatchObject({ ok: false, error: { code: 'unauthenticated' } })
   })
 })
+
+describe('the audit check on writes', () => {
+  it('notices a write that changes rows without an audit entry', async () => {
+    const { db } = createTestDb()
+    const ipc = createTestIpc(db)
+    ipc.signInAs('partner')
+    clearHandlers()
+    let n = 0
+    handle('setup.finish', (_req, ctx) => {
+      ctx.db.prepare('INSERT INTO settings ("group", key, value) VALUES (?, ?, ?)').run('t', `k${n++}`, '1')
+      return { setupNeeded: false, setupComplete: true, signedIn: true, actor: ctx.actor, firmName: null }
+    })
+    await expect(ipc.call('setup.finish', undefined)).rejects.toThrow(/setup.finish changed stored data without an audit entry/)
+    // In the app it is logged, and the call still succeeds.
+    const lenient = createTestIpc(db, { register: false, allowUnaudited: true })
+    lenient.signInAs('partner')
+    const warned: string[] = []
+    const r = await dispatch({ ...lenient.deps, onUnauditedWrite: undefined, log: { ...lenient.log, warn: (m: string) => void warned.push(m) } }, lenient.senderId, 'setup.finish', undefined)
+    expect(r.ok).toBe(true)
+    expect(warned.join('\n')).toMatch(/without an audit entry/)
+  })
+
+  it('is satisfied by a write that audits, or one that changes nothing', async () => {
+    const { db } = createTestDb()
+    const ipc = createTestIpc(db)
+    ipc.signInAs('partner')
+    expect(await ipc.call('setup.finish', undefined)).toMatchObject({ ok: true })
+    expect(ipc.auditCount()).toBe(1)
+    expect(await ipc.call('setup.finish', undefined)).toMatchObject({ ok: true })
+    expect(ipc.auditCount()).toBe(1)
+  })
+
+  it('leaves out the writes marked audited: false', async () => {
+    const { db } = createTestDb()
+    const ipc = createTestIpc(db)
+    expect(await ipc.call('appearance.set', { mode: 'day' })).toMatchObject({ ok: true })
+    expect(await ipc.call('auth.signIn', { username: 'pat.partner', password: 'correct horse battery' })).toMatchObject({ ok: true })
+    expect(ipc.auditCount()).toBe(0)
+  })
+})

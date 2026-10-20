@@ -51,6 +51,10 @@ describe('the IPC contract', () => {
       expect(channel).toMatch(/^[a-z][a-zA-Z0-9]*\.[a-z][a-zA-Z0-9]*$/)
       expect(['read', 'write']).toContain(flags.kind)
       if ('auth' in flags) expect(flags.auth).toBe('public')
+      if ('audited' in flags) {
+        expect(flags.audited).toBe(false)
+        expect(flags.kind, `${channel} is marked as not audited but isn’t a write`).toBe('write')
+      }
       if ('allowWhenReadOnly' in flags) {
         expect(flags.allowWhenReadOnly).toBe(true)
         expect(flags.kind, `${channel} is allowed when read-only but isn’t a write`).toBe('write')
