@@ -32,7 +32,7 @@ export function saveAppearance(db: Db, patch: Partial<AppearancePrefs>, user: st
 }
 
 export interface WindowColours {
-  /** The window's own background, matching the page's backdrop, so there is no white flash. */
+  /** The window's own background: the backdrop's middle colour, so there is no white flash before the page paints. */
   background: string
   /** The colour of the window controls (minimise, maximise, close) drawn over the title bar. */
   symbol: string
