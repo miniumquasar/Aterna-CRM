@@ -17,8 +17,14 @@
  *
  *   activePeople(db)
  *       Everyone who can sign in, by name ({ id, name, role }).
+ *
+ *   readFirm(db), firmName(db)
+ *       The firm's details (name, address, contact, references) for reports,
+ *       letters and the recovery sheet; the licence holder's name wins in the
+ *       title bar once there is one.
  */
 export { requireRecentReauth, reauthUntil, type ReauthContext } from './reauth'
 export { registerPersonLinkCheck, personLinks, type PersonLinkCheck } from './person-links'
 export { registerSetupProbe, type SetupProbe } from './setup-state'
 export { directory as activePeople } from './people'
+export { firmName, readFirm } from './firm'

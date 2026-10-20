@@ -53,7 +53,6 @@ interface PersonRow {
   last_sign_in_at: string | null
   created_at: string
   idle_minutes: number | null
-  password_hash: string | null
   assigned: number
   responsible: number
   open_seen: string | null
@@ -61,7 +60,7 @@ interface PersonRow {
 
 const SELECT_PEOPLE = `
   SELECT u.id, u.username, u.name, u.email, u.role, u.active, u.locked_at, u.must_change_password, u.failed_sign_ins,
-    u.last_sign_in_at, u.created_at, u.idle_minutes, u.password_hash,
+    u.last_sign_in_at, u.created_at, u.idle_minutes,
     (SELECT count(*) FROM clients c WHERE c.assigned_to = u.id) AS assigned,
     (SELECT count(*) FROM clients c WHERE c.partner_id = u.id) AS responsible,
     (SELECT max(s.last_seen_at) FROM sessions s WHERE s.user_id = u.id AND s.ended_at IS NULL) AS open_seen
