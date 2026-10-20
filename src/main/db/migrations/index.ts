@@ -3,7 +3,7 @@
  * folder (<range>_<domain>/index.ts), so adding one never touches this file.
  * migrate() applies them in id order.
  */
-import type { Migration } from '../migrate'
+import { compareMigrationIds, type Migration } from '../migrate'
 import { migration0001Core } from './0001_core'
 import { authMigrations } from './0100_auth'
 import { licenceMigrations } from './0200_licence'
@@ -45,4 +45,4 @@ export const MIGRATION_GROUPS: readonly MigrationGroup[] = [
 ]
 
 /** Every migration, in the order they apply. */
-export const MIGRATIONS: readonly Migration[] = MIGRATION_GROUPS.flatMap((g) => g.migrations).sort((a, b) => a.id.localeCompare(b.id))
+export const MIGRATIONS: readonly Migration[] = MIGRATION_GROUPS.flatMap((g) => g.migrations).sort((a, b) => compareMigrationIds(a.id, b.id))

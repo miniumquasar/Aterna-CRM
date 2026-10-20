@@ -7,9 +7,14 @@
  *    is NEVER renamed, emptied or replaced. Opening stops with a plain
  *    explanation and the file is left exactly as it was: it is first probed
  *    read-only, so nothing is written until the key is known to be right.
- *  - Only a database that opens but fails `quick_check` is set aside, with its
- *    -wal and -shm files as a matching set, and a new one started; a notice
- *    says where the old one went.
+ *  - Only a database that opens but fails `quick_check` (it reports damage, or
+ *    the check itself stops on SQLITE_CORRUPT / SQLITE_NOTADB) is set aside,
+ *    with its -wal and -shm files as a matching set, and a new one started; a
+ *    notice says where the old one went. A check that can't run for any other
+ *    reason (the file is locked or busy, a read error) stops start-up with
+ *    nothing changed: a healthy database is never moved because it was busy.
+ *  - A -wal file with no database beside it is never joined to a new, empty
+ *    database (SQLite would replay it into the new file): start-up stops.
  *
  * Services never import the handle: they take `db` as a parameter (handlers
  * get it from their context), so tests can pass an in-memory database.
@@ -37,12 +42,41 @@ export function applyKey(db: Db, keyHex: string): void {
   db.pragma(`key = "x'${keyHex}'"`)
 }
 
-/** The connection settings every handle uses. */
+/** How long a connection waits for another's lock before giving up. */
+export const BUSY_TIMEOUT_MS = 5000
+
+/** The connection settings every handle uses. busy_timeout comes first, so switching to WAL waits for a lock rather than failing. */
 export function applyConnectionPragmas(db: Db, options: { wal?: boolean } = {}): void {
+  db.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`)
   if (options.wal !== false) db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
-  db.pragma('busy_timeout = 5000')
   db.pragma('synchronous = NORMAL')
+}
+
+/** True when `file` exists and holds at least one byte. */
+export function nonEmptyFile(file: string): boolean {
+  try {
+    return statSync(file).size > 0
+  } catch {
+    return false
+  }
+}
+
+/** True when the database, or its write-ahead log, is on disk: either means there is data to keep. */
+export function databaseFilesPresent(file: string): boolean {
+  return nonEmptyFile(file) || nonEmptyFile(`${file}-wal`)
+}
+
+/** Another connection or program holds the file just now. */
+export function isBusyError(err: unknown): boolean {
+  const code = (err as { code?: unknown } | null)?.code
+  return typeof code === 'string' && (code.startsWith('SQLITE_BUSY') || code.startsWith('SQLITE_LOCKED'))
+}
+
+/** SQLite's own word that the file is damaged, as opposed to busy, locked or unreadable just now. */
+export function isDamageError(err: unknown): boolean {
+  const code = (err as { code?: unknown } | null)?.code
+  return typeof code === 'string' && (code.startsWith('SQLITE_CORRUPT') || code === 'SQLITE_NOTADB')
 }
 
 function readable(db: Db): void {
@@ -53,12 +87,37 @@ function stamp(now: Date): string {
   return now.toISOString().replace(/[:.]/g, '-')
 }
 
-/** Renames a database and its -wal and -shm files aside, as a set. Returns the new main file path. */
+/**
+ * Renames a database and its -wal and -shm files aside, as a set, and
+ * returns the new main file path. Nothing already there is overwritten. If
+ * any rename fails, those already made are undone, so the files stay a
+ * matching set in one place or the other, and a DatabaseOpenError says so.
+ */
 export function setAside(file: string, label: string, now: Date = new Date()): string {
-  const target = `${file}.${label}-${stamp(now)}`
-  renameSync(file, target)
-  for (const suffix of ['-wal', '-shm']) {
-    if (existsSync(file + suffix)) renameSync(file + suffix, target + suffix)
+  const base = `${file}.${label}-${stamp(now)}`
+  let target = base
+  for (let n = 2; ['', '-wal', '-shm'].some((s) => existsSync(target + s)); n++) target = `${base}-${n}`
+  const moved: Array<readonly [string, string]> = []
+  try {
+    for (const suffix of ['', '-wal', '-shm']) {
+      const from = file + suffix
+      if (suffix && !existsSync(from)) continue
+      renameSync(from, target + suffix)
+      moved.push([from, target + suffix])
+    }
+  } catch (cause) {
+    for (const [from, to] of moved.reverse()) {
+      try {
+        renameSync(to, from)
+      } catch {
+        // Start-up stops below; the orphaned -wal guard keeps a half-moved set from being reused.
+      }
+    }
+    throw new DatabaseOpenError(
+      `The practice database (${file}) failed its integrity check, but it couldn’t be moved aside (another program may have it open), ` +
+        'so it has been left where it is. Close any program using the data folder and start AETERNA CRM again.',
+      { cause }
+    )
   }
   return target
 }
@@ -91,10 +150,27 @@ function cannotOpen(file: string, cause: unknown): DatabaseOpenError {
   )
 }
 
+function orphanedLog(file: string): DatabaseOpenError {
+  return new DatabaseOpenError(
+    `The practice database’s journal (${file}-wal) is in the data folder without the database itself, so a new database ` +
+      'can’t safely be started beside it. Nothing has been changed. Put the database file back from a copy of the data folder ' +
+      'or a backup, then start AETERNA CRM again.'
+  )
+}
+
+function checkFailed(file: string, cause: unknown): DatabaseOpenError {
+  return new DatabaseOpenError(
+    `The practice database (${file}) couldn’t be checked just now (it may be busy or locked by another program). ` +
+      'The file has not been changed. Close any program using the data folder and start AETERNA CRM again.',
+    { cause }
+  )
+}
+
 function openReadWrite(file: string, key: string): Db {
   const db = new Database(file)
   try {
     applyKey(db, key)
+    db.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`)
     readable(db)
     return db
   } catch (err) {
@@ -107,7 +183,11 @@ export function openDatabase(o: OpenOptions): OpenedDatabase {
   const log = o.log ?? nullLogger
   const now = o.now ?? (() => new Date())
   const quickCheck = o.quickCheck ?? ((db: Db) => String(db.pragma('quick_check', { simple: true })))
-  const existed = existsSync(o.file) && statSync(o.file).size > 0
+  const existed = nonEmptyFile(o.file)
+  if (!existed && nonEmptyFile(`${o.file}-wal`)) {
+    log.error(`A -wal file was found without its database at ${o.file}; nothing was changed.`)
+    throw orphanedLog(o.file)
+  }
 
   const notices: string[] = []
   let setAsideAt: string | null = null
@@ -121,19 +201,28 @@ export function openDatabase(o: OpenOptions): OpenedDatabase {
     try {
       probe = new Database(o.file, { readonly: true, fileMustExist: true })
       applyKey(probe, o.key)
+      probe.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`)
       readable(probe)
     } catch (cause) {
       probe?.close()
+      if (isBusyError(cause)) {
+        log.error('The database was busy or locked when start-up tried to read it; it has been left as it was.', cause)
+        throw checkFailed(o.file, cause)
+      }
       log.error('The database could not be opened with the key file’s key; it has been left as it was.', cause)
       throw cannotOpen(o.file, cause)
     }
     try {
       check = quickCheck(probe)
     } catch (err) {
+      if (!isDamageError(err)) {
+        probe.close()
+        log.error('The database’s integrity check couldn’t run; it has been left as it was.', err)
+        throw checkFailed(o.file, err)
+      }
       check = err instanceof Error ? err.message : String(err)
-    } finally {
-      probe.close()
     }
+    probe.close()
     if (check !== 'ok') {
       setAsideAt = setAside(o.file, 'damaged', now())
       log.error(`The database failed its integrity check (${check.slice(0, 300)}); it was set aside at ${setAsideAt}.`)
@@ -148,7 +237,8 @@ export function openDatabase(o: OpenOptions): OpenedDatabase {
   try {
     db = openReadWrite(o.file, o.key)
   } catch (cause) {
-    throw existed && !setAsideAt ? cannotOpen(o.file, cause) : new DatabaseOpenError(`A new practice database couldn’t be created at ${o.file}.`, { cause })
+    if (existed && !setAsideAt) throw isBusyError(cause) ? checkFailed(o.file, cause) : cannotOpen(o.file, cause)
+    throw new DatabaseOpenError(`A new practice database couldn’t be created at ${o.file}.`, { cause })
   }
 
   applyConnectionPragmas(db)

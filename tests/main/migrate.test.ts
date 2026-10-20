@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { openMemoryDatabase } from '@main/db/connection'
-import { MigrationError, appliedMigrations, migrate, validateMigrations, type Migration } from '@main/db/migrate'
+import { MigrationError, appliedMigrations, compareMigrationIds, migrate, validateMigrations, type Migration } from '@main/db/migrate'
 import { MIGRATIONS, MIGRATION_GROUPS } from '@main/db/migrations'
 
 const tables = (db: ReturnType<typeof openMemoryDatabase>): string[] =>
@@ -55,9 +55,26 @@ describe('migrations', () => {
     expect(() => migrate(db, MIGRATIONS)).toThrow(/newer version of AETERNA CRM/)
   })
 
-  it('refuse malformed and repeated ids', () => {
+  it('refuse malformed and repeated ids, and two migrations with one number', () => {
     expect(() => validateMigrations([{ id: 'core', up() {} }])).toThrow()
     expect(() => validateMigrations([{ id: '0401_a', up() {} }, { id: '0401_a', up() {} }])).toThrow(/twice/)
+    expect(() => validateMigrations([{ id: '0401_a', up() {} }, { id: '0401_b', up() {} }])).toThrow(/share the number 0401/)
+  })
+
+  it('apply by id, character by character, whatever order a folder lists them in', () => {
+    const ran: string[] = []
+    const m = (id: string): Migration => ({ id, up: () => void ran.push(id) })
+    const db = openMemoryDatabase()
+    migrate(db, ['0402_b_c', '0401_a_b', '1000_x', '0403_a'].map(m))
+    expect(ran).toEqual(['0401_a_b', '0402_b_c', '0403_a', '1000_x'])
+    expect(['0401_z', '0401_a', '0400_b'].sort(compareMigrationIds)).toEqual(['0400_b', '0401_a', '0401_z'])
+  })
+
+  it('are listed oldest first in each domain’s folder', () => {
+    for (const g of MIGRATION_GROUPS) {
+      const ids = g.migrations.map((x) => x.id)
+      expect(ids, `${g.domain}’s migrations/index.ts lists them out of order`).toEqual([...ids].sort(compareMigrationIds))
+    }
   })
 
   it('check foreign keys for a table rebuild before committing it', () => {

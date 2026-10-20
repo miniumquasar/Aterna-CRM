@@ -111,4 +111,54 @@ describe('opening the practice database', () => {
     expect(reopened.db.prepare('SELECT count(*) AS n FROM t').get()).toEqual({ n: 50 })
     reopened.db.close()
   })
+
+  it('leaves a healthy database where it is when the check can’t run because the file is busy', () => {
+    const dir = tempDir()
+    const file = join(dir, 'aeterna.db')
+    makeDatabase(file, KEY)
+    const before = digest(file)
+    const busy = (): string => {
+      throw Object.assign(new Error('database is locked'), { code: 'SQLITE_BUSY' })
+    }
+    expect(() => openDatabase({ file, key: KEY, quickCheck: busy })).toThrow(/couldn’t be checked just now[\s\S]*has not been changed/)
+    expect(digest(file)).toBe(before)
+    expect(readdirSync(dir).filter((f) => f.includes('damaged'))).toEqual([])
+  })
+
+  it('sets a database aside when the check itself stops on damage', () => {
+    const dir = tempDir()
+    const file = join(dir, 'aeterna.db')
+    makeDatabase(file, KEY)
+    const corrupt = (): string => {
+      throw Object.assign(new Error('database disk image is malformed'), { code: 'SQLITE_CORRUPT' })
+    }
+    const opened = openDatabase({ file, key: KEY, quickCheck: corrupt })
+    expect(opened.setAsideAt).toMatch(/\.damaged-/)
+    opened.db.close()
+  })
+
+  it('never starts a new database beside a -wal file whose database is missing', () => {
+    const dir = tempDir()
+    const file = join(dir, 'aeterna.db')
+    writeFileSync(`${file}-wal`, 'frames from a database that has gone')
+    expect(() => openDatabase({ file, key: KEY })).toThrow(/without the database itself[\s\S]*Nothing has been changed/)
+    expect(readdirSync(dir)).toEqual(['aeterna.db-wal'])
+  })
+
+  it('never overwrites an earlier set-aside copy', () => {
+    const dir = tempDir()
+    const file = join(dir, 'aeterna.db')
+    const now = (): Date => new Date('2026-10-20T10:00:00Z')
+    const damaged = (): string => 'row 1 missing from index'
+    makeDatabase(file, KEY)
+    const first = openDatabase({ file, key: KEY, quickCheck: damaged, now })
+    first.db.exec('CREATE TABLE second (x)')
+    first.db.close()
+    const second = openDatabase({ file, key: KEY, quickCheck: damaged, now })
+    expect(second.setAsideAt).not.toBe(first.setAsideAt)
+    expect(existsSync(first.setAsideAt as string)).toBe(true)
+    expect(existsSync(second.setAsideAt as string)).toBe(true)
+    second.db.close()
+  })
 })
+

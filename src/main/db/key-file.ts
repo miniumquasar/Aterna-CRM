@@ -89,6 +89,14 @@ export function createDatabaseKey(path: string, now: Date = new Date()): string 
   return key
 }
 
+function nonEmpty(file: string): boolean {
+  try {
+    return statSync(file).size > 0
+  } catch {
+    return false
+  }
+}
+
 export interface LoadedKey {
   key: string
   /** True when this run made the key (a new installation). */
@@ -97,14 +105,14 @@ export interface LoadedKey {
 
 /**
  * The key for `databaseFile`: read from `keyFile`, or created when neither the
- * key file nor the database exists yet. A database without its key file stops
- * start-up with an explanation; nothing is changed.
+ * key file nor the database (nor its -wal file) exists yet. A database without
+ * its key file stops start-up with an explanation; nothing is changed.
  */
 export function loadOrCreateDatabaseKey(paths: { keyFile: string; databaseFile: string }): LoadedKey {
   const existing = readDatabaseKey(paths.keyFile)
   if (existing) return { key: existing, created: false }
-  const databaseExists = existsSync(paths.databaseFile) && statSync(paths.databaseFile).size > 0
-  if (databaseExists) {
+  // The database, or only its write-ahead log: either holds the practice's data, which a new key would lock away.
+  if (nonEmpty(paths.databaseFile) || nonEmpty(`${paths.databaseFile}-wal`)) {
     throw new KeyFileError(
       `The database key file is missing from ${dirname(paths.keyFile)}. The practice database is still there and has not been changed. ` +
         'Put database-key.json back from a copy of the data folder, or unlock the database with its recovery sheet.'

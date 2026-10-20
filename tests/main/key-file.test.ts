@@ -57,4 +57,12 @@ describe('the database key file', () => {
     expect(() => loadOrCreateDatabaseKey({ keyFile: file, databaseFile: join(tempDir(), 'x.db') })).toThrow(/can’t be read/)
     expect(readFileSync(file, 'utf8')).toBe('garbage')
   })
+
+  it('is not made up when only the database’s -wal file is left', () => {
+    const dir = tempDir()
+    writeFileSync(join(dir, 'aeterna.db-wal'), 'write-ahead log frames')
+    expect(() => loadOrCreateDatabaseKey({ keyFile: join(dir, 'database-key.json'), databaseFile: join(dir, 'aeterna.db') })).toThrow(KeyFileError)
+    expect(existsSync(join(dir, 'database-key.json'))).toBe(false)
+  })
 })
+

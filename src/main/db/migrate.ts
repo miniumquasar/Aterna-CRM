@@ -30,13 +30,23 @@ export class MigrationError extends PlainError {
 
 const ID = /^\d{4}_[a-z0-9_]+$/
 
-/** Throws if ids are malformed or repeated. */
+/** The order migrations apply in: by id, compared character by character (never by locale). */
+export function compareMigrationIds(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
+/** Throws if ids are malformed or repeated, or two share a number (0401_a and 0401_b). */
 export function validateMigrations(migrations: readonly Migration[]): void {
   const seen = new Set<string>()
+  const numbers = new Map<string, string>()
   for (const m of migrations) {
     if (!ID.test(m.id)) throw new Error(`Migration id “${m.id}” must look like 0401_client_registers.`)
     if (seen.has(m.id)) throw new Error(`Migration id “${m.id}” is used twice.`)
+    const n = m.id.slice(0, 4)
+    const other = numbers.get(n)
+    if (other) throw new Error(`Migrations “${other}” and “${m.id}” share the number ${n}; give each its own.`)
     seen.add(m.id)
+    numbers.set(n, m.id)
   }
 }
 
@@ -70,7 +80,7 @@ export function migrate(db: Db, migrations: readonly Migration[], log: Logger = 
     )
   }
 
-  const pending = [...migrations].filter((m) => !done.has(m.id)).sort((a, b) => a.id.localeCompare(b.id))
+  const pending = [...migrations].filter((m) => !done.has(m.id)).sort((a, b) => compareMigrationIds(a.id, b.id))
   const applied: string[] = []
   for (const m of pending) {
     const keysOff = m.foreignKeys === 'off'
