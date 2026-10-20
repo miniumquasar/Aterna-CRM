@@ -33,6 +33,11 @@ export default tseslint.config(
     files: ['src/main/**', 'src/preload/**', 'src/shared/**', 'tools/**', 'scripts/**', 'e2e/**', 'tests/**', '*.config.*', 'eslint.config.mjs'],
     languageOptions: { globals: { ...globals.node } }
   },
+  // The smoke test runs some functions inside the page (page.evaluate).
+  {
+    files: ['e2e/**'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } }
+  },
   {
     files: ['postcss.config.js'],
     languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } }
