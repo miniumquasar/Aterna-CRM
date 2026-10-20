@@ -5,7 +5,7 @@
  * default-export a component), plus the shell's banners and the splash.
  * The smoke test drives the real app; this catches a slot it never opens.
  */
-import { Suspense, createElement, type ComponentType, type LazyExoticComponent } from 'react'
+import { Suspense, createElement, lazy, type ComponentType, type LazyExoticComponent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -70,6 +70,14 @@ describe('pre-wired slots', () => {
 
   it.each(SETUP_STEPS.map((s) => [s.id, s] as const))('setup step %s draws', async (_id, step) => {
     await draws(step.component, { status, draft: { firmName: 'Test LLP' }, updateDraft: () => undefined, next: () => undefined, back: () => undefined, isFirst: false })
+  })
+
+  it.each([
+    ['the HMRC tab of HMRC & AML (compliance)', lazy(() => import('@renderer/screens/compliance/HmrcTab'))],
+    ['the AML tab of HMRC & AML (aml)', lazy(() => import('@renderer/screens/compliance/AmlTab'))],
+    ['the audit log tab of Security (aml)', lazy(() => import('@renderer/screens/security/AuditLogTab'))]
+  ] as const)('%s draws', async (_label, component) => {
+    await draws(component as LazyExoticComponent<ComponentType<object>>, {})
   })
 
   it('declares each settings section, tab, step and Go to… provider once', () => {
