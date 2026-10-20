@@ -1,0 +1,17 @@
+node_modules/
+out/
+release/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+database-key.json
+.aeterna-licensing/
+*.log
+.DS_Store
+*.tsbuildinfo
+.vite/

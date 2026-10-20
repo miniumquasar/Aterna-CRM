@@ -1,0 +1,12 @@
+{
+  "//": "Editors and tsx read this file. Type checking runs per project: tsconfig.node.json (main, preload, shared, tools, tests, scripts) and tsconfig.web.json (renderer, shared, renderer tests).",
+  "files": [],
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["./src/shared/*"],
+      "@main/*": ["./src/main/*"],
+      "@renderer/*": ["./src/renderer/src/*"]
+    }
+  }
+}

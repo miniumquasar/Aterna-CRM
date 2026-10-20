@@ -1,0 +1,27 @@
+# Packaging for AETERNA CRM. The release domain completes this file
+# (icons, installer script, fuses, macOS settings, signing step).
+appId: uk.co.bitopi.aeternacrm
+productName: AETERNA CRM
+copyright: Copyright © 2026 Bitopi
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.map"
+asarUnpack:
+  - node_modules/better-sqlite3-multiple-ciphers/**
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: AETERNA CRM
+  artifactName: AETERNA-CRM-Setup-${version}.${ext}
