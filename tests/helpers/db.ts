@@ -8,7 +8,7 @@
  *   const actor = actorFor('staff')
  */
 import type { Actor, Role } from '@shared/domain/roles'
-import { hashPassword, type ScryptCost } from '@main/auth/passwords'
+import { hashPassword, setCostForNewHashes, type ScryptCost } from '@main/auth/passwords'
 import { openMemoryDatabase, type Db } from '@main/db/connection'
 import { migrate } from '@main/db/migrate'
 import { MIGRATIONS } from '@main/db/migrations'
@@ -36,6 +36,8 @@ export function createTestDb(options: { seedUsers?: boolean; firmName?: string |
   const db = openMemoryDatabase()
   migrate(db, MIGRATIONS)
   initFieldCrypto(TEST_DB_KEY)
+  // People created through the handlers (first partner, invites, resets) hash cheaply too.
+  setCostForNewHashes(TEST_SCRYPT_COST)
   if (options.seedUsers !== false) {
     cachedHash ??= hashPassword(TEST_PASSWORD, TEST_SCRYPT_COST)
     const insert = db.prepare('INSERT INTO users (id, username, name, role, password_hash) VALUES (?, ?, ?, ?, ?)')

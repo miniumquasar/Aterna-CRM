@@ -77,8 +77,8 @@ describe('appearance', () => {
   it('is saved per OS user, normalised, and refuses unknown choices', async () => {
     const { db } = createTestDb()
     const ipc = createTestIpc(db)
-    expect(await ipc.ok('appearance.get', undefined)).toEqual({ mode: 'auto', palette: 'burgundy', effects: 'full', reduceMotion: false, reduceTransparency: false })
-    expect(await ipc.ok('appearance.set', { mode: 'night', palette: 'sapphire' })).toMatchObject({ mode: 'night', palette: 'sapphire', effects: 'full' })
+    expect(await ipc.ok('appearance.get', undefined)).toEqual({ mode: 'auto', palette: 'burgundy', effects: 'balanced', density: 'comfortable', reduceMotion: false, reduceTransparency: false })
+    expect(await ipc.ok('appearance.set', { mode: 'night', palette: 'sapphire' })).toMatchObject({ mode: 'night', palette: 'sapphire', effects: 'balanced' })
     expect(await ipc.ok('appearance.get', undefined)).toMatchObject({ mode: 'night', palette: 'sapphire' })
     expect(await ipc.call('appearance.set', { palette: 'neon' as never })).toMatchObject({ ok: false, error: { code: 'invalid', field: 'palette' } })
   })
