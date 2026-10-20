@@ -4,10 +4,26 @@
  * on screen; this sheet drops the glass, the field and the shell around the
  * screen, and lets the screen run over as many pages as it needs, so a
  * client pack prints legibly on a mono laser.
+ *
+ * The page margin is padding repeated on every page (not an @page margin),
+ * so a PDF made from the window has white margins rather than the window's
+ * own colour.
  */
 @media print {
   @page {
-    margin: 14mm 12mm;
+    margin: 0;
+  }
+
+  /* Paper is always Day: the scheme's own behaviour too, not just its colours. */
+  :root,
+  [data-scheme] {
+    --hover-lift: 0px !important;
+    --danger-fill: rgb(var(--danger)) !important;
+    --danger-ink: 255 255 255 !important;
+    --danger-edge: transparent !important;
+    --segment-on: rgb(var(--solid-raised)) !important;
+    --header-fill: transparent !important;
+    --grain-opacity: 0 !important;
   }
 
   html,
@@ -24,6 +40,29 @@
     print-color-adjust: exact;
   }
 
+  /* The shell stops scrolling: the screen flows onto pages, inside a 14 mm by 12 mm margin on each. */
+  [data-app-shell] {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 14mm 12mm !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  [data-app-shell] > *,
+  [data-print-flow] {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* After the flow rules, so they can't bring any of this back. */
+  [data-app-shell] > .app-backdrop,
+  [data-app-shell] > .app-grain,
+  [data-app-shell] > .titlebar,
   .app-backdrop,
   .app-grain,
   .specular,
@@ -33,18 +72,6 @@
   [role='tooltip'],
   [data-inert-exempt] {
     display: none !important;
-  }
-
-  /* The shell stops scrolling: the screen flows onto pages. */
-  [data-app-shell],
-  [data-app-shell] > *,
-  [data-print-flow] {
-    display: block !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
 
   .glass,
@@ -67,16 +94,16 @@
   .glass-raised {
     background-color: rgb(var(--surface)) !important;
     border-color: rgb(var(--border-strong) / var(--border-strong-alpha)) !important;
-    break-inside: avoid;
   }
   .glass .glass {
     background-color: rgb(var(--surface-raised)) !important;
   }
 
-  table {
-    break-inside: auto;
-  }
-  tr {
+  /* Small things stay whole; big cards may run over a page. */
+  .glass .glass,
+  figure,
+  tr,
+  [data-print-keep] {
     break-inside: avoid;
   }
   thead {
