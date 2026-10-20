@@ -111,7 +111,9 @@ export const clientsChannels = {
 - `kind` is `'read'` or `'write'`. A write changes stored data.
 - Optional flags: `auth: 'public'` (callable signed out: sign-in, setup, licence status,
   appearance, ping); `allowWhenReadOnly: true` (a write still allowed after the licence
-  lapses: licence entry, backups, appearance, sign-out, exports).
+  lapses: licence entry, backups, appearance, sign-out, exports); `audited: false` (a write whose
+  changes deliberately stay out of the audit log: sessions and sign-in history, this PC's
+  preferences).
 - `src/shared/ipc/contract.ts` composes every domain into `ApiContract` and `CHANNELS`; the
   scaffold pre-wires all domains, so a domain only edits its own file.
 
@@ -157,6 +159,10 @@ Each domain exports `registerXxxHandlers()` from `src/main/ipc/<domain>.ts`;
   @tanstack/react-query. Query keys are `[channel, req]`. A mutation invalidates the queries
   it names (`invalidates: ['clients.list', 'dashboard.summary']`).
 - Screens never touch `window.aeterna` directly.
+- `App.tsx` sends the person back to sign-in when any query or save is refused as
+  `unauthenticated`, and re-reads every query on `licence.changed` (read-only began or ended).
+- Opened at `#/unlock` (by the backup domain's start-up hook, before the database is open), the
+  page is `components/recovery/UnlockApp.tsx` instead of the app.
 - Where `window.aeterna` is absent (the browser demo), `lib/api.ts` uses the demo backend in
   `src/renderer/src/demo/`. The app code is the same either way.
 
@@ -170,9 +176,12 @@ shows a plain-language error window with the log path and does not continue:
 1. Single-instance lock and the Windows app ID.
 2. Data folder (`app.getPath('appData')/AETERNA CRM`, or `AETERNA_DATA_DIR` for tests and
    smoke runs), moving data left by earlier builds.
-3. Database: key, open, integrity check, migrations.
+3. Database: a restore staged by the last run swapped in, the key (or, when the key file is
+   missing, damaged or wrong, the key from the recovery sheet), open, integrity check,
+   migrations (`src/main/startup/database.ts`, with the backup domain's hooks in
+   `src/main/backup/startup.ts`).
 4. One-time conversion of values encrypted under the old scheme (if any).
-5. Licence.
+5. Licence (`startLicence()`, which may be async).
 6. Every handler group (`registerAllHandlers()`).
 7. Wiring report: any channel in `CHANNELS` without a handler is logged (and fails tests).
 8. Main window.
@@ -183,8 +192,12 @@ shows a plain-language error window with the log path and does not continue:
 The window: `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, `webSecurity`
 on, a strict CSP in `index.html`, navigation and new windows blocked, external links opened
 only for an allow-list (gov.uk, companieshouse.gov.uk, find-and-update.company-information…,
-ollama.com, `mailto:`, `https://wa.me/`). `backgroundColor` matches the saved theme so there is
-no white flash. No developer tools or Reload menu in packaged builds.
+ollama.com, Microsoft's sign-in page for the optional Microsoft 365 email setting, `mailto:`,
+`https://wa.me/`). Only the exact app page (`index.html` with any `#route`) counts as the app, for
+navigation and for IPC. Every other webContents (a print window, the start-up error window) refuses
+pop-ups and navigation. A page that crashes is reloaded, at most three times a minute.
+`backgroundColor` matches the saved theme so there is no white flash. No developer tools or Reload
+menu in packaged builds.
 
 Title bar: the window has no native title bar (`titleBarStyle: 'hidden'`). The renderer draws its
 own (`components/layout/TitleBar.tsx`) as the drag region. On Windows and Linux the system's own
@@ -199,8 +212,12 @@ system's; the page leaves room for them with `env(titlebar-area-*)`. macOS keeps
   per-install key from `database-key.json` beside the database (32 random bytes, hex). Then
   `journal_mode = WAL`, `foreign_keys = ON`, `busy_timeout = 5000`, `synchronous = NORMAL`.
 - A database that cannot be opened (wrong key, missing key file, corrupt file) is **never**
-  renamed, emptied or replaced: start-up stops with an explanation. Only a file that opens but
-  fails `quick_check` is set aside, with its `-wal` and `-shm`.
+  renamed, emptied or replaced: start-up stops with an explanation (`DatabaseOpenError.reason`
+  says which). Only a file that opens but fails `quick_check` (a damage report, or SQLITE_CORRUPT /
+  SQLITE_NOTADB from the check) is set aside, with its `-wal` and `-shm`, all or none; a check that
+  can't run because the file is busy or locked stops start-up with nothing changed. A `-wal` file
+  without its database is never joined to a new one, and never gets a new key. A key file is
+  written only where none exists (`createDatabaseKey()`, `writeDatabaseKey()`).
 - `getDb()` returns the open handle; services take `db` as a parameter so tests can pass an
   in-memory one.
 - Migrations are the only schema source: each exports `{ id: 'NNNN_name', up(db) }` (with
@@ -240,8 +257,11 @@ human-facing code, changeable but never empty.
   (invoices, receipts, HMRC submissions, AML records, documents, WIP).
 - `audit.ts`: `recordChange(db, actor, { action, entity, entityId, clientId?, before?, after? })`
   — call it in the same transaction as every write. Rows are hash-chained (`prev_hash`,
-  `hash` = SHA-256 of the previous hash and the canonical row), so edits made outside the app
-  show up in Security.
+  `hash` = SHA-256 of the previous hash and the canonical row), and the newest entry is kept in
+  `app_meta` (`audit_head`), so edits, removals (the newest ones included) and additions made
+  outside the app show up in Security. The registry notices a write channel that changed rows
+  without an audit entry (logged in the app; a failure in `createTestIpc`); the few writes that
+  deliberately aren't audited say `audited: false` in their flags (sign-in, sign-out, appearance).
 - `issues.ts`: `raiseIssue(db, {...dedupeKey})` and `resolveIssue(db, dedupeKey)` for the data
   issue register (references that fail their check, import findings, migration repairs).
 - `notify.ts`: `notify(db, {...})` adds to the notification table with a `subjectKey`, so a
@@ -333,8 +353,12 @@ transparency; the choice is saved for the user on this PC.
 - `tests/helpers/ipc.ts`: `createTestIpc(db)` calls channels through the real registry (session,
   public, read-only checks and error handling), with `signInAs(role)`.
 - `tests/contract.test.ts`: every channel in `CHANNELS` has a handler, every handler a
-  channel, every write channel's handler audits.
-- `e2e/`: Playwright `_electron` smoke over every route in Day and Night.
+  channel, flags are valid. That every write audits is checked on each call through
+  `createTestIpc` (above), so a domain's own handler tests catch a missing `recordChange()`.
+- `tests/renderer/slots.test.tsx`: every route's screen, settings section, client-file tab and
+  setup step loads and draws.
+- `e2e/`: Playwright `_electron` smoke over every route in Day and Night, then every client-file
+  tab and settings section.
 
 Every new service gets tests in the same change. Tests never use real client data.
 

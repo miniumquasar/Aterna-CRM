@@ -32,8 +32,14 @@ places (the `ApiEvents` interface and the `EVENT_NAMES` table; the compiler chec
 | Settings sections | `src/renderer/src/screens/settings/<Name>Section.tsx` (listed in `sections.ts`) |
 | Client file tabs | the tab files listed in `src/renderer/src/screens/clients/clientFileTabs.ts` (each gets `{ clientId }`) |
 | Setup wizard steps | `src/renderer/src/screens/setup/<Name>Step.tsx` (listed in `steps.ts`) |
-| Go to… results | your provider (clients: `src/renderer/src/screens/clients/searchProvider.ts`) |
+| Go to… results | your provider, listed in `navigation/searchProviders.ts`: clients `screens/clients/searchProvider.ts`, references `screens/practice/searchProvider.ts` (whose reference is this?), compliance `screens/compliance/searchProvider.ts`, work `screens/work/searchProvider.ts` |
 | Banners in the shell | `components/licence/LicenceBanner.tsx`, `components/system/DatabaseStatusBanner.tsx`, `components/recovery/RecoveryPrompt.tsx`, `components/session/IdleWarning.tsx`, `components/notifications/NotificationBell.tsx` |
+| The splash (design) | `components/layout/Splash.tsx`, rendered by `App.tsx` over everything; render null when done |
+| Start-up hooks (backup) | `src/main/backup/startup.ts`: `applyPendingRestore()` runs before the key is read; `recoverDatabaseKey()` runs when the key file is missing, damaged or wrong, and may open an unlock window on the app's page at `#/unlock`, where `App.tsx` shows `components/recovery/UnlockApp.tsx` |
+| Crash reports (backup) | `src/main/system/crash-reports.ts`: `startCrashReports()` (start-up step 2) and `recordCrash()` (the page's process stopped) |
+| Restore on a new PC (backup) | `components/recovery/RestoreOffer.tsx`, rendered by the setup wizard while nobody can sign in |
+| The assistant's briefing (integrations) | `screens/assistant/AssistantBriefing.tsx`, rendered by `ForecastScreen.tsx` (analytics) and the client file's `OverviewTab.tsx` (clients): keep it when you replace those |
+| Start-up step 5 (licence) | `startLicence()` in `src/main/licence/startup.ts`, which may be async (start-up waits) |
 | Tests | `tests/main/<domain>/`, `tests/shared/<domain>/`, `tests/renderer/<domain>/` (renderer tests are type-checked with the renderer; start a DOM test with `// @vitest-environment jsdom`) |
 
 A placeholder file says which domain owns it. Replace it whole; keep its export name (default export for
@@ -51,7 +57,8 @@ schema and these contracts.
 - **Owns:** `src/shared/theme/**`, `src/renderer/src/theme/**`, `src/renderer/src/components/ui/**`,
   `src/renderer/src/components/layout/**`, `src/renderer/src/styles/**`, `tailwind.config.ts`,
   `src/shared/contracts/appearance.ts`, `src/main/ipc/appearance.ts`, `src/main/preferences/**`,
-  `src/renderer/src/screens/settings/AppearanceSection.tsx`, `src/renderer/src/screens/system/DesignGallery.tsx`.
+  `src/renderer/src/screens/settings/AppearanceSection.tsx`, `src/renderer/src/screens/system/DesignGallery.tsx`
+  (the splash is `components/layout/Splash.tsx`, which `App.tsx` renders).
   Keep the props of every `components/ui` component (they are documented in each file) and the signatures
   of `readAppearance()` and `windowColours()` (start-up calls them).
 - **Must:** Day, Night and Auto (Auto follows Windows through `nativeTheme`); the five colour
@@ -76,9 +83,11 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/auth.ts`, `src/main/auth/**`, `src/main/ipc/auth.ts`,
   migrations `0100`–`0199`, `src/renderer/src/screens/auth/**`, `src/renderer/src/screens/setup/**`
   (the wizard shell `SetupWizard.tsx`, `steps.ts`, and the `FirmStep`, `PartnerStep` and `DoneStep`; the
-  Recovery, Vault, Licence and Import steps belong to backup, references, licence and import),
+  Recovery, Vault, Licence and Import steps belong to backup, references, licence and import; keep the
+  backup domain's `RestoreOffer` the wizard renders while nobody can sign in),
   `src/renderer/src/screens/settings/PeopleSection.tsx`,
-  `src/renderer/src/screens/settings/FirmSection.tsx`, `src/renderer/src/components/session/**`,
+  `src/renderer/src/screens/settings/FirmSection.tsx`, `src/renderer/src/screens/settings/AccountSection.tsx`
+  (Your sign-in: change your own password, for everyone), `src/renderer/src/components/session/**`,
   `src/renderer/src/stores/session.ts`. The scaffold's minimal sign-in, first partner and setup finish
   (`auth.status`, `auth.signIn`, `auth.signOut`, `setup.createFirstPartner`, `setup.finish`) are yours to
   extend; keep `auth.status`'s fields, which `App.tsx` gates on. Replace the session resolver with
@@ -128,9 +137,14 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/backup.ts`, `src/shared/contracts/system.ts`, `src/main/backup/**`,
   `src/main/security/recovery-sheet.ts`, `src/main/system/**`, `src/main/ipc/backup.ts`, `src/renderer/src/screens/setup/RecoveryStep.tsx`,
   `src/main/ipc/system.ts`, migrations `0300`–`0399`, `src/renderer/src/screens/settings/BackupsSection.tsx`,
-  `src/renderer/src/components/recovery/**`, `src/renderer/src/components/system/**`. Start-up notices
+  `src/renderer/src/components/recovery/**` (with `UnlockApp.tsx` and `RestoreOffer.tsx`),
+  `src/renderer/src/components/system/**`. Start-up notices
   (a damaged database set aside, data from an earlier build) are in `startupNotices()`
-  (`src/main/app/notices.ts`) for the database status banner.
+  (`src/main/app/notices.ts`) for the database status banner. Start-up step 3 calls the hooks in
+  `src/main/backup/startup.ts` (a staged restore swapped in before the key is read; the key recovered
+  from the recovery sheet when the key file is missing, damaged or wrong; write a key file only with
+  `writeDatabaseKey()`, never over one) and step 2 calls `startCrashReports()` in
+  `src/main/system/crash-reports.ts`; keep their signatures.
 - **Must (L1, 3C, L4 Fortress):** recovery sheet for the database key — PDF and print, partners
   only with their password re-entered, never logged; the key in short groups with check
   characters so a typing slip is caught and its group named; offered the moment the first
@@ -151,7 +165,8 @@ schema and these contracts.
   migrations `0400`–`0499`, `src/renderer/src/screens/clients/**` (Clients list, Client file shell
   and its Overview, Contacts and Registers tabs, edit dialog, quick add, paste import, the Go to…
   provider `searchProvider.ts`; `clientFileTabs.ts` is pre-wired with every domain's tab — keep the
-  other domains' entries).
+  other domains' entries; keep the assistant's `<AssistantBriefing subject={{ kind: 'client', clientId }} />`
+  on the Overview tab).
 - **Must (3A, 4B, 4C, 4F, L5 decisions):** list with Current / No longer clients / Everyone
   (Current by default), search across names, trading names, other names, codes and company
   numbers, with "n matches among no-longer clients — show"; filters by type, status, assignee
@@ -175,7 +190,7 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/compliance.ts`, `src/shared/domain/deadlines.ts`,
   `src/main/records/compliance/**`, `src/main/ipc/compliance.ts`, migrations `0500`–`0599`,
   `src/renderer/src/screens/compliance/**` (Deadlines, HMRC & AML shell with its HMRC tab,
-  Onboarding gaps, the client file's `ClientDeadlinesTab.tsx`) except `AmlTab.tsx` and
+  Onboarding gaps, the client file's `ClientDeadlinesTab.tsx`, the Go to… provider `searchProvider.ts`) except `AmlTab.tsx` and
   `ClientAmlTab.tsx`, which are the aml domain's.
 - **Must (4B, 4C, 4F):** statutory rules from period ends — accounts (9 months after year end
   for private companies), CT600 (12 months), CT payment (9 months and 1 day), VAT (1 month and
@@ -196,7 +211,7 @@ schema and these contracts.
 ### work — tasks, work in progress, billing
 - **Owns:** `src/shared/contracts/work.ts`, `src/shared/domain/money.ts`, `src/main/records/work/**`,
   `src/main/ipc/work.ts`, migrations `0600`–`0699`, `src/renderer/src/screens/work/**` (Tasks,
-  Work in progress, Billing, the client file's `ClientWorkTab.tsx`).
+  Work in progress, Billing, the client file's `ClientWorkTab.tsx`, the Go to… provider `searchProvider.ts`).
 - **Must (3A, 4C, 4F):** tasks with assignee, due date, priority, status (open, in progress,
   done, cancelled — cancelled is never open), linked client and deadline; time and work in
   progress entries with rate and value in pence; invoices numbered automatically, open, paid or
@@ -248,7 +263,9 @@ schema and these contracts.
 ### references — references, authorisations, vault
 - **Owns:** `src/shared/contracts/references.ts`, `src/main/references/**`, `src/main/ipc/references.ts`,
   migrations `0900`–`0999`, `src/renderer/src/screens/practice/**` (Practice details and
-  references, the client file's `ClientReferencesTab.tsx`), `src/renderer/src/screens/setup/VaultStep.tsx`.
+  references, the client file's `ClientReferencesTab.tsx`, the Go to… provider `searchProvider.ts`),
+  `src/renderer/src/screens/setup/VaultStep.tsx`, `src/renderer/src/screens/settings/VaultSection.tsx`
+  (the per-firm switch, passphrase change and sheet).
 - **Must:** practice identifiers (21 firm reference types with renewal countdowns: ASA agent
   codes, AML supervisor, ICO, professional body, PI insurance, the firm's own VAT, UTR, PAYE,
   ACSP…); client reference types beyond the client record (CIS, EORI, TRS URN, CGT property
@@ -303,6 +320,7 @@ schema and these contracts.
 - **Owns:** `src/shared/contracts/analytics.ts`, `src/main/records/analytics/**`, `src/main/ipc/analytics.ts`,
   migrations `1150`–`1199`, `src/renderer/src/screens/risk/**`, `src/renderer/src/screens/forecast/**`,
   `src/renderer/src/screens/reports/**`, `src/renderer/src/screens/security/**` (except `AuditLogTab.tsx`).
+  Keep the assistant's `<AssistantBriefing subject={{ kind: 'forecast' }} />` on Forecast.
 - **Must (4D, 4E, 4F):** Risk — every client scored out of 100 from reasons that can each be
   checked and opened (overdue deadlines, open issues, missing AML or engagement letter, missing
   or expiring authorisations, Companies House red flags); Forecast — deadlines by month, kind of
@@ -316,7 +334,9 @@ schema and these contracts.
 
 ### integrations — Companies House and the assistant
 - **Owns:** `src/shared/contracts/integrations.ts`, `src/main/integrations/**`, `src/main/ipc/integrations.ts`,
-  migrations `1200`–`1299`, `src/renderer/src/screens/assistant/**`,
+  migrations `1200`–`1299`, `src/renderer/src/screens/assistant/**` (with `AssistantBriefing.tsx`, which
+  Forecast and the client file render), `src/renderer/src/screens/companies-house/**` (the client file's
+  `ClientCompaniesHouseTab.tsx`: profile, officers, PSCs, filing history),
   `src/renderer/src/screens/settings/{CompaniesHouseSection,AssistantSection}.tsx`.
 - **Must (4D, 4E):** Companies House REST (search, profile, officers, PSCs, filing history) with the
   firm's own API key, a daily check of every live client company two minutes after start, the
