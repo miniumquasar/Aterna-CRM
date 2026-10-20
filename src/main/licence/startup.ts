@@ -14,6 +14,7 @@ export interface LicenceStartup {
   now: Date
 }
 
-export function startLicence(ctx: LicenceStartup): void {
+/** May be async (reading the marker outside the data folder, for instance): start-up waits for it. */
+export function startLicence(ctx: LicenceStartup): void | Promise<void> {
   ctx.log.info('Licence checks are not part of this build yet; every feature is available.')
 }

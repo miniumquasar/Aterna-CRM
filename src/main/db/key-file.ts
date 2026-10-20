@@ -17,10 +17,21 @@ export interface KeyFileContents {
   createdAt: string
 }
 
+/**
+ * Why the key couldn't be had:
+ *   missing      the database is there but its key file isn't
+ *   unreadable   the key file is there but damaged
+ *   exists       a key file is already there, so a new one wasn't written
+ */
+export type KeyFileProblem = 'missing' | 'unreadable' | 'exists'
+
 export class KeyFileError extends PlainError {
-  constructor(message: string, options?: { cause?: unknown }) {
+  readonly reason: KeyFileProblem
+
+  constructor(reason: KeyFileProblem, message: string, options?: { cause?: unknown }) {
     super(message, options)
     this.name = 'KeyFileError'
+    this.reason = reason
   }
 }
 
@@ -38,6 +49,7 @@ export function readDatabaseKey(path: string): string | null {
     parsed = JSON.parse(readFileSync(path, 'utf8'))
   } catch (cause) {
     throw new KeyFileError(
+      'unreadable',
       `The database key file (${path}) can’t be read. It has not been changed. ` +
         'Put back a good copy from a copy of the data folder, or unlock the database with its recovery sheet.',
       { cause }
@@ -46,6 +58,7 @@ export function readDatabaseKey(path: string): string | null {
   const key = (parsed as Partial<KeyFileContents> | null)?.key
   if (!isDatabaseKey(key)) {
     throw new KeyFileError(
+      'unreadable',
       `The database key file (${path}) doesn’t hold a key in the expected form. It has not been changed. ` +
         'Put back a good copy from a copy of the data folder, or unlock the database with its recovery sheet.'
     )
@@ -60,10 +73,19 @@ export function readDatabaseKey(path: string): string | null {
  * complete one, and an existing file is never overwritten.
  */
 export function createDatabaseKey(path: string, now: Date = new Date()): string {
+  return writeDatabaseKey(path, randomBytes(32).toString('hex'), now)
+}
+
+/**
+ * Writes a key file holding `key` (for example one typed from the recovery
+ * sheet), with the same care: never over an existing key file. To replace
+ * a wrong or damaged key file, set it aside (rename it) first.
+ */
+export function writeDatabaseKey(path: string, key: string, now: Date = new Date()): string {
+  if (!isDatabaseKey(key)) throw new KeyFileError('unreadable', 'A database key must be 64 hexadecimal characters.')
   if (existsSync(path)) {
-    throw new KeyFileError(`A database key file already exists at ${path}; it has not been replaced.`)
+    throw new KeyFileError('exists', `A database key file already exists at ${path}; it has not been replaced.`)
   }
-  const key = randomBytes(32).toString('hex')
   const contents: KeyFileContents = { version: 1, key, createdAt: now.toISOString() }
   const temp = `${path}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`
   const fd = openSync(temp, 'wx', 0o600)
@@ -78,9 +100,9 @@ export function createDatabaseKey(path: string, now: Date = new Date()): string 
       linkSync(temp, path) // fails if the target exists: never overwrites
     } catch (err) {
       const code = (err as NodeJS.ErrnoException).code
-      if (code === 'EEXIST') throw new KeyFileError(`A database key file appeared at ${path} while this one was being made; it has not been replaced.`)
+      if (code === 'EEXIST') throw new KeyFileError('exists', `A database key file appeared at ${path} while this one was being made; it has not been replaced.`)
       // File systems without hard links (FAT, some network drives): rename, after checking again.
-      if (existsSync(path)) throw new KeyFileError(`A database key file already exists at ${path}; it has not been replaced.`)
+      if (existsSync(path)) throw new KeyFileError('exists', `A database key file already exists at ${path}; it has not been replaced.`)
       renameSync(temp, path)
     }
   } finally {
@@ -114,6 +136,7 @@ export function loadOrCreateDatabaseKey(paths: { keyFile: string; databaseFile: 
   // The database, or only its write-ahead log: either holds the practice's data, which a new key would lock away.
   if (nonEmpty(paths.databaseFile) || nonEmpty(`${paths.databaseFile}-wal`)) {
     throw new KeyFileError(
+      'missing',
       `The database key file is missing from ${dirname(paths.keyFile)}. The practice database is still there and has not been changed. ` +
         'Put database-key.json back from a copy of the data folder, or unlock the database with its recovery sheet.'
     )

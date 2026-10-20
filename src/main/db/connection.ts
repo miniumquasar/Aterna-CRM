@@ -27,16 +27,30 @@ import { isDatabaseKey } from './key-file'
 
 export type Db = Database.Database
 
+/**
+ * Why a database couldn't be opened:
+ *   wrong_key       it isn't readable with this key (wrong key, or not a database at all)
+ *   busy            another program has it locked, or the check couldn't run just now
+ *   orphaned_log    a -wal file is there without its database
+ *   set_aside_failed  it failed its integrity check but couldn't be moved aside
+ *   invalid_key     the key given isn't 64 hexadecimal characters
+ *   create_failed   a new database couldn't be made
+ */
+export type DatabaseOpenProblem = 'wrong_key' | 'busy' | 'orphaned_log' | 'set_aside_failed' | 'invalid_key' | 'create_failed'
+
 export class DatabaseOpenError extends PlainError {
-  constructor(message: string, options?: { cause?: unknown }) {
+  readonly reason: DatabaseOpenProblem
+
+  constructor(reason: DatabaseOpenProblem, message: string, options?: { cause?: unknown }) {
     super(message, options)
     this.name = 'DatabaseOpenError'
+    this.reason = reason
   }
 }
 
 /** Applies the cipher settings and key. Must run before anything reads the file. */
 export function applyKey(db: Db, keyHex: string): void {
-  if (!isDatabaseKey(keyHex)) throw new DatabaseOpenError('The database key isn’t in the expected form (64 hexadecimal characters).')
+  if (!isDatabaseKey(keyHex)) throw new DatabaseOpenError('invalid_key', 'The database key isn’t in the expected form (64 hexadecimal characters).')
   db.pragma("cipher = 'sqlcipher'")
   db.pragma('legacy = 4')
   db.pragma(`key = "x'${keyHex}'"`)
@@ -114,6 +128,7 @@ export function setAside(file: string, label: string, now: Date = new Date()): s
       }
     }
     throw new DatabaseOpenError(
+      'set_aside_failed',
       `The practice database (${file}) failed its integrity check, but it couldn’t be moved aside (another program may have it open), ` +
         'so it has been left where it is. Close any program using the data folder and start AETERNA CRM again.',
       { cause }
@@ -143,6 +158,7 @@ export interface OpenedDatabase {
 
 function cannotOpen(file: string, cause: unknown): DatabaseOpenError {
   return new DatabaseOpenError(
+    'wrong_key',
     `The practice database (${file}) can’t be opened with this computer’s database key. ` +
       'The file has not been changed. If database-key.json was replaced or copied from another computer, put the right one back, ' +
       'or unlock the database with its recovery sheet. Then start AETERNA CRM again.',
@@ -152,6 +168,7 @@ function cannotOpen(file: string, cause: unknown): DatabaseOpenError {
 
 function orphanedLog(file: string): DatabaseOpenError {
   return new DatabaseOpenError(
+    'orphaned_log',
     `The practice database’s journal (${file}-wal) is in the data folder without the database itself, so a new database ` +
       'can’t safely be started beside it. Nothing has been changed. Put the database file back from a copy of the data folder ' +
       'or a backup, then start AETERNA CRM again.'
@@ -160,6 +177,7 @@ function orphanedLog(file: string): DatabaseOpenError {
 
 function checkFailed(file: string, cause: unknown): DatabaseOpenError {
   return new DatabaseOpenError(
+    'busy',
     `The practice database (${file}) couldn’t be checked just now (it may be busy or locked by another program). ` +
       'The file has not been changed. Close any program using the data folder and start AETERNA CRM again.',
     { cause }
@@ -238,7 +256,7 @@ export function openDatabase(o: OpenOptions): OpenedDatabase {
     db = openReadWrite(o.file, o.key)
   } catch (cause) {
     if (existed && !setAsideAt) throw isBusyError(cause) ? checkFailed(o.file, cause) : cannotOpen(o.file, cause)
-    throw new DatabaseOpenError(`A new practice database couldn’t be created at ${o.file}.`, { cause })
+    throw new DatabaseOpenError('create_failed', `A new practice database couldn’t be created at ${o.file}.`, { cause })
   }
 
   applyConnectionPragmas(db)

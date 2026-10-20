@@ -5,7 +5,8 @@
  *
  *   1. Single-instance lock and the Windows app ID.
  *   2. Data folder (AETERNA_DATA_DIR for tests and smoke runs).
- *   3. Database: key, open, integrity check, migrations.
+ *   3. Database: a staged restore swapped in, key (or the recovery sheet),
+ *      open, integrity check, migrations.
  *   4. One-time conversion of values sealed under an older scheme.
  *   5. Licence.
  *   6. Every handler group.
@@ -23,8 +24,8 @@ import { dataPathsFor, ensureDataFolders, findLegacyData, resolveDataRoot, setDa
 import { setRuntimeInfo } from './app/runtime'
 import { installAppMenu } from './app/menu'
 import { createMainWindow, getMainWindow, isAppUrl } from './app/window'
-import { closeDb, getDb, openDatabase, setDb } from './db/connection'
-import { loadOrCreateDatabaseKey } from './db/key-file'
+import { applyPendingRestore, recoverDatabaseKey } from './backup/startup'
+import { closeDb, getDb, setDb } from './db/connection'
 import { migrate } from './db/migrate'
 import { MIGRATIONS } from './db/migrations'
 import { emit, setEventTarget } from './events'
@@ -35,7 +36,9 @@ import { startJobs, stopJobs } from './jobs'
 import { startLicence } from './licence/startup'
 import { readAppearance, windowColours } from './preferences/appearance'
 import { initFieldCrypto } from './security/field-crypto'
+import { recordCrash, startCrashReports } from './system/crash-reports'
 import { runConversions } from './startup/conversions'
+import { openPracticeDatabase } from './startup/database'
 import { showStartupError } from './startup/error-window'
 import { StartupFailure, StartupRunner } from './startup/steps'
 
@@ -71,6 +74,7 @@ async function start(): Promise<void> {
     setAppLogger(createFileLogger(p.appLog, { echo: !app.isPackaged }))
     setRuntimeInfo({ version: app.getVersion(), packaged: app.isPackaged, dataFolder: p.root })
     runner.line(`data folder: ${p.root}`)
+    startCrashReports({ paths: p, log: log().child('crash') })
     for (const legacy of findLegacyData(appData, p.root)) {
       // Earlier builds used another schema and cipher, so their data is not moved; the import domain reads it.
       addStartupNotice('info', `Data from an earlier version of the app was found at ${legacy}. It has been left where it is.`)
@@ -79,14 +83,24 @@ async function start(): Promise<void> {
     return p
   })
 
-  // 3 ─ The database: key, open, integrity check, migrations.
-  await runner.run(3, 'Database', () => {
-    const { key, created } = loadOrCreateDatabaseKey({ keyFile: paths.keyFile, databaseFile: paths.database })
-    runner.line(created ? 'database key created for this installation' : 'database key read')
-    const opened = openDatabase({ file: paths.database, key, log: log().child('database') })
+  // 3 ─ The database: a staged restore, the key, open, integrity check, migrations.
+  const windowFiles = {
+    preloadPath: join(__dirname, '../preload/index.js'),
+    rendererFile: join(__dirname, '../renderer/index.html'),
+    devServerUrl: !app.isPackaged && process.env.ELECTRON_RENDERER_URL ? process.env.ELECTRON_RENDERER_URL : null
+  }
+  await runner.run(3, 'Database', async () => {
+    const opened = await openPracticeDatabase(paths, {
+      applyPendingRestore,
+      recoverDatabaseKey,
+      window: windowFiles,
+      log: log(),
+      now: () => new Date(),
+      line: (message) => runner.line(message)
+    })
     for (const notice of opened.notices) addStartupNotice('warning', notice)
     setDb(opened.db)
-    initFieldCrypto(key)
+    initFieldCrypto(opened.key)
     const result = migrate(opened.db, MIGRATIONS, log().child('migrate'))
     runner.line(`migrations: ${result.applied.length} applied, ${result.total} in all`)
     const closed = closeAbandonedSessions(opened.db)
@@ -99,9 +113,7 @@ async function start(): Promise<void> {
   })
 
   // 5 ─ The licence.
-  await runner.run(5, 'Licence', () => {
-    startLicence({ db: getDb(), paths, log: log().child('licence'), now: new Date() })
-  })
+  await runner.run(5, 'Licence', () => startLicence({ db: getDb(), paths, log: log().child('licence'), now: new Date() }))
 
   // 6 ─ Every handler group, behind the one registry.
   await runner.run(6, 'Handlers', () => {
@@ -132,13 +144,13 @@ async function start(): Promise<void> {
     if (process.platform !== 'darwin' && session.defaultSession.availableSpellCheckerLanguages.includes('en-GB')) {
       session.defaultSession.setSpellCheckerLanguages(['en-GB'])
     }
+    mainWindowOpened = true
     const win = createMainWindow({
-      preloadPath: join(__dirname, '../preload/index.js'),
-      devServerUrl: !app.isPackaged && process.env.ELECTRON_RENDERER_URL ? process.env.ELECTRON_RENDERER_URL : null,
-      rendererFile: join(__dirname, '../renderer/index.html'),
+      ...windowFiles,
       colours: windowColours(readAppearance(getDb()), nativeTheme.shouldUseDarkColors),
       isPackaged: app.isPackaged,
       log: log().child('window'),
+      onPageCrashed: (reason) => recordCrash('page', reason, log().child('crash')),
       onPageGone: (id) => {
         try {
           endSessionForSender(getDb(), id)
@@ -170,7 +182,12 @@ app.on('web-contents-created', (_event, contents) => {
   })
 })
 
-app.on('window-all-closed', () => app.quit())
+// Quit when the main window closes. Before it exists, a start-up hook's own
+// window (unlocking with the recovery sheet) may close without ending start-up.
+let mainWindowOpened = false
+app.on('window-all-closed', () => {
+  if (mainWindowOpened) app.quit()
+})
 
 app.on('will-quit', () => {
   stopJobs()
