@@ -19,6 +19,12 @@ describe('routes', () => {
     expect(navFor('partner', false).flatMap((g) => g.routes.map((r) => r.id))).toContain('forecast')
     expect(navFor('partner', false).flatMap((g) => g.routes)).not.toContainEqual(expect.objectContaining({ id: 'design' }))
   })
+
+  it('keeps the sidebar to the brief’s fourteen entries at most, for everyone', () => {
+    for (const role of ['staff', 'manager', 'partner'] as const) {
+      expect(navFor(role, false).flatMap((g) => g.routes).length, role).toBeLessThanOrEqual(14)
+    }
+  })
 })
 
 describe('the router', () => {

@@ -61,7 +61,7 @@ export function Sidebar({ actor }: SidebarProps): JSX.Element {
 
   return (
     <nav aria-label="Main" className="glass-panel relative z-10 flex w-[244px] shrink-0 flex-col rounded-panel" data-print="hide">
-      <div className="flex-1 overflow-y-auto px-3 pb-2 pt-2.5">
+      <div className="flex-1 overflow-y-auto px-3 pb-2 pt-2">
         {groups.map((group) => (
           <NavSection
             key={group.id}
@@ -102,7 +102,7 @@ function NavSection({ group, activeId, open, onToggle }: { group: NavGroup; acti
   const listId = useId()
   const routes = open ? group.routes : group.routes.filter((r) => r.id === activeId)
   return (
-    <div className="mb-2.5 last:mb-0">
+    <div className="mb-1.5 last:mb-0">
       <h2>
         <button
           type="button"

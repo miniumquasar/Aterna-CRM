@@ -6,11 +6,12 @@
  * check is kept, with a note. Owned by the auth domain.
  */
 import { useState } from 'react'
-import { Building, RotateCcw, Save } from 'lucide-react'
+import { ArrowRight, Building, RotateCcw, Save } from 'lucide-react'
 import { FIRM_FIELDS, FIRM_FIELD_LABELS, type FirmField, type FirmView } from '@shared/contracts/auth'
 import { formatInstant } from '@shared/domain/dates'
 import { EmptyState, GlassButton, Loading, LoadProblem, toast } from '@renderer/components/ui'
 import { useApiMutation, useApiQuery } from '@renderer/lib/api'
+import { navigate } from '@renderer/stores/router'
 import { FirmFields, firmInput, firmProblem, firmValues, type FirmValues } from '@renderer/screens/auth/firm/FirmFields'
 
 const GROUPS: ReadonlyArray<{ title: string; fields: readonly FirmField[] }> = [
@@ -64,6 +65,7 @@ function FirmForm({ view }: { view: FirmView }): JSX.Element {
         submit()
       }}
     >
+      <PracticeDetailsLink />
       {GROUPS.map((g) => (
         <FirmFields
           key={g.title}
@@ -109,6 +111,7 @@ function FirmReadOnly({ view }: { view: FirmView }): JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <p className="text-[13px] text-fg-muted">Partners and managers change these.</p>
+      <PracticeDetailsLink />
       {GROUPS.map((g) => (
         <section key={g.title} aria-label={g.title}>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-fg-subtle">{g.title}</h3>
@@ -122,6 +125,18 @@ function FirmReadOnly({ view }: { view: FirmView }): JSX.Element {
           </dl>
         </section>
       ))}
+    </div>
+  )
+}
+
+/** Practice details has no sidebar entry; the firm's other references are reached from here. */
+function PracticeDetailsLink(): JSX.Element {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-sunken/60 px-4 py-3" data-print="hide">
+      <p className="min-w-[16rem] flex-1 text-[13px] text-fg-muted">The firm’s other references and their renewals (agent codes, AML supervisor, insurance) are in Practice details.</p>
+      <GlassButton variant="ghost" size="sm" icon={ArrowRight} iconPosition="end" onClick={() => navigate('practice')} data-testid="firm-practice-details">
+        Practice details
+      </GlassButton>
     </div>
   )
 }

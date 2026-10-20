@@ -10,12 +10,17 @@ export interface NavGroupDef {
   title: string
 }
 
+/**
+ * Plain-language groups, with no more than 14 entries for anyone (the brief),
+ * so the sidebar fits a default window without scrolling. Screens with no
+ * entry are reached from the screens that lead to them and from Go to….
+ */
 export const NAV_GROUPS: readonly NavGroupDef[] = [
-  { id: 'work', title: 'Work' },
+  { id: 'work', title: 'Your day' },
   { id: 'clients', title: 'Clients' },
   { id: 'compliance', title: 'Compliance' },
-  { id: 'practice', title: 'Practice' },
-  { id: 'system', title: 'System' }
+  { id: 'practice', title: 'Money' },
+  { id: 'system', title: 'The practice' }
 ]
 
 export interface NavGroup extends NavGroupDef {
