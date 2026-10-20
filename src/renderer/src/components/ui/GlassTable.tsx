@@ -1,7 +1,9 @@
 /**
- * A table on glass: sortable columns, row click, sticky header, keyboard
- * row navigation (↑ ↓ Home End, Enter opens), optional tick-box selection,
- * and an empty state when there are no rows.
+ * A table on glass: sortable columns, row click, sticky frosted header,
+ * keyboard row navigation (↑ ↓ Home End, Enter opens), optional tick-box
+ * selection, and an empty state when there are no rows. Figures are
+ * tabular, so columns of money and dates line up; rows follow Settings →
+ * Appearance → Density (44px Comfortable, 32px Compact).
  */
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
@@ -47,7 +49,7 @@ export type RowKey = string | number
  * @prop empty             Shown instead of the body when there are no rows (an EmptyState).
  * @prop loading           Shows Loading in the body.
  * @prop stickyHeader      Default true; give the table a `maxHeight` (or a scrolling parent).
- * @prop dense             Tighter rows.
+ * @prop dense             Tighter rows (Compact, whatever the density setting).
  */
 export interface GlassTableProps<T> {
   caption: string
@@ -175,17 +177,19 @@ export function GlassTable<T>({
 
   const allKeys = sorted.map(rowKey)
   const selectedCount = selectable ? allKeys.filter((k) => selectedKeys.has(k)).length : 0
-  const cellPad = dense ? 'px-3 py-1.5' : 'px-4 py-2.5'
+  const cellPad = dense ? 'px-3 py-1' : 'px-4 py-1.5'
+  const rowHeight = dense ? 'h-8' : 'h-row'
+  const headerCell = cx('border-b hairline', stickyHeader && 'glass-header sticky top-0 z-10')
   const activeIndex = Math.min(focusIndex, Math.max(0, sorted.length - 1))
 
   return (
-    <div className={cx('glass overflow-auto rounded-2xl', className)} style={maxHeight ? { maxHeight } : undefined}>
-      <table className="w-full border-separate border-spacing-0 text-sm">
-        <caption className={showCaption ? 'px-4 pb-1 pt-3 text-left text-[13px] font-semibold text-fg' : 'sr-only'}>{caption}</caption>
+    <div className={cx('glass overflow-auto rounded-2xl', className)} style={maxHeight ? { maxHeight } : undefined} data-print-flow>
+      <table className="tabular w-full border-separate border-spacing-0 text-sm">
+        <caption className={showCaption ? 'px-4 pb-2 pt-3.5 text-left text-[13px] font-semibold text-fg' : 'sr-only'}>{caption}</caption>
         <thead>
           <tr>
             {selectable && (
-              <th scope="col" className={cx('w-10 border-b hairline', cellPad, stickyHeader && 'sticky top-0 z-10 glass-raised !rounded-none !border-x-0 !border-t-0 !shadow-none')}>
+              <th scope="col" className={cx('w-11', headerCell, cellPad)}>
                 <Checkbox
                   checked={sorted.length > 0 && selectedCount === sorted.length}
                   indeterminate={selectedCount > 0 && selectedCount < sorted.length}
@@ -205,11 +209,11 @@ export function GlassTable<T>({
                   aria-sort={ariaSort}
                   style={c.width ? { width: c.width } : undefined}
                   className={cx(
-                    'whitespace-nowrap border-b hairline text-xs font-semibold uppercase tracking-wide text-fg-subtle',
+                    'h-10 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-muted',
+                    headerCell,
                     cellPad,
                     ALIGN[c.align ?? 'start'],
-                    c.hideBelow && HIDE[c.hideBelow],
-                    stickyHeader && 'sticky top-0 z-10 glass-raised !rounded-none !border-x-0 !border-t-0 !shadow-none'
+                    c.hideBelow && HIDE[c.hideBelow]
                   )}
                 >
                   {c.sortValue ? (
@@ -217,13 +221,13 @@ export function GlassTable<T>({
                       type="button"
                       onClick={() => setSort(c.id)}
                       className={cx(
-                        'inline-flex items-center gap-1 rounded uppercase tracking-wide hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
+                        'group/sort -mx-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 uppercase tracking-[0.08em] transition-colors hover:text-fg',
                         active && 'text-fg',
                         c.align === 'end' && 'flex-row-reverse'
                       )}
                     >
                       {c.header}
-                      <SortIcon size={13} aria-hidden className={active ? 'opacity-100' : 'opacity-50'} />
+                      <SortIcon size={13} aria-hidden className={cx('transition-opacity', active ? 'text-accent-text opacity-100' : 'opacity-40 group-hover/sort:opacity-80')} />
                     </button>
                   ) : (
                     c.header
@@ -237,13 +241,13 @@ export function GlassTable<T>({
           {loading ? (
             <tr>
               <td colSpan={columns.length + (selectable ? 1 : 0)} className="p-8">
-                <Loading label={`Loading ${caption.toLowerCase()}…`} />
+                <Loading label={`Loading ${caption.charAt(0).toLowerCase()}${caption.slice(1)}…`} />
               </td>
             </tr>
           ) : sorted.length === 0 ? (
             <tr>
               <td colSpan={columns.length + (selectable ? 1 : 0)} className="p-6">
-                {empty ?? <p className="text-center text-sm text-fg-muted">Nothing to show.</p>}
+                {empty ?? <p className="py-4 text-center text-sm text-fg-muted">Nothing to show here yet.</p>}
               </td>
             </tr>
           ) : (
@@ -260,20 +264,23 @@ export function GlassTable<T>({
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   onKeyDown={(e) => onRowKey(e, row, index)}
                   onFocus={() => setFocusIndex(index)}
+                  data-selected={selected || undefined}
                   className={cx(
-                    'group outline-none transition-colors',
+                    'group outline-none transition-colors duration-150',
                     onRowClick && 'cursor-pointer',
-                    'hover:bg-fg/[0.04] focus-visible:bg-accent/10 focus-visible:shadow-[inset_3px_0_0_0_rgb(var(--focus))]',
-                    selected && 'bg-accent/[0.08]'
+                    'hover:bg-fg/[0.035]',
+                    // Focus and selection: the accent tint and a 3px bar on the first cell (rows can't draw shadows).
+                    'focus-visible:bg-accent-soft [&:focus-visible>td:first-child]:shadow-[inset_3px_0_0_0_rgb(var(--focus))]',
+                    selected && 'bg-accent-soft [&>td:first-child]:shadow-[inset_3px_0_0_0_rgb(var(--accent))]'
                   )}
                 >
                   {selectable && (
-                    <td className={cx('border-b hairline', cellPad)} onClick={(e) => e.stopPropagation()}>
+                    <td className={cx('border-b hairline group-last:border-b-0', rowHeight, cellPad)} onClick={(e) => e.stopPropagation()}>
                       <Checkbox checked={selected} onChange={() => toggle(key)} aria-label={rowLabel ? `Tick: ${rowLabel(row)}` : 'Tick this row'} />
                     </td>
                   )}
                   {columns.map((c) => (
-                    <td key={c.id} className={cx('border-b hairline text-fg', cellPad, ALIGN[c.align ?? 'start'], c.align === 'end' && 'tabular', c.hideBelow && HIDE[c.hideBelow])}>
+                    <td key={c.id} className={cx('border-b hairline text-fg group-last:border-b-0', rowHeight, cellPad, ALIGN[c.align ?? 'start'], c.hideBelow && HIDE[c.hideBelow])}>
                       {c.cell(row)}
                     </td>
                   ))}

@@ -56,7 +56,7 @@ export const toast = {
 }
 
 const ICON: Record<ToastTone, LucideIcon> = { success: CircleCheck, info: Info, warning: TriangleAlert, error: CircleAlert }
-const ICON_TONE: Record<ToastTone, string> = { success: 'text-success', info: 'text-info', warning: 'text-warning', error: 'text-danger' }
+const ICON_TONE: Record<ToastTone, string> = { success: 'bg-success-soft text-success', info: 'bg-info-soft text-info', warning: 'bg-warning-soft text-warning', error: 'bg-danger-soft text-danger' }
 
 function ToastCard({ item }: { item: ToastItem }): JSX.Element {
   const remove = useToastStore((s) => s.remove)
@@ -70,20 +70,22 @@ function ToastCard({ item }: { item: ToastItem }): JSX.Element {
   const Icon = ICON[item.tone]
   return (
     <li
-      className="glass-raised pointer-events-auto flex w-[22rem] animate-toast-in items-start gap-3 rounded-xl p-3.5"
+      className="glass-raised pointer-events-auto flex w-[23rem] max-w-[calc(100vw-2rem)] animate-toast-in items-start gap-3 rounded-2xl p-3"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <Icon size={18} className={cx('mt-0.5 shrink-0', ICON_TONE[item.tone])} aria-hidden />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-fg">{item.message}</p>
-        {item.description && <p className="mt-0.5 text-[13px] text-fg-muted">{item.description}</p>}
+      <span className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]', ICON_TONE[item.tone])} aria-hidden>
+        <Icon size={17} strokeWidth={1.9} />
+      </span>
+      <div className="min-w-0 flex-1 pt-1">
+        <p className="text-sm font-medium leading-5 text-fg">{item.message}</p>
+        {item.description && <p className="mt-0.5 text-[13px] leading-5 text-fg-muted">{item.description}</p>}
         {item.action && (
           <button
             type="button"
-            className="mt-2 rounded-md text-[13px] font-semibold text-accent-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+            className="mt-2 rounded-md text-[13px] font-semibold text-accent-text underline-offset-2 hover:underline"
             onClick={() => {
               item.action?.onClick()
               remove(item.id)
@@ -96,7 +98,7 @@ function ToastCard({ item }: { item: ToastItem }): JSX.Element {
       <button
         type="button"
         aria-label="Dismiss"
-        className="rounded-md p-0.5 text-fg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+        className="rounded-lg p-1 text-fg-subtle transition-colors hover:bg-fg/[0.07] hover:text-fg"
         onClick={() => remove(item.id)}
       >
         <X size={15} aria-hidden />

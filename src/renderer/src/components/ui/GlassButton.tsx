@@ -5,20 +5,26 @@ import { cx } from '../../lib/cx'
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
+/**
+ * Primary: the accent gradient with white text (both ends clear 4.5:1). In
+ * Day hovering deepens it; in Night it lifts (the fill is already at its
+ * white-text limit). Danger is solid in Day and a soft tint with danger
+ * text in Night, where a solid red can't carry white text.
+ */
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-accent-fg shadow-[inset_0_1px_0_0_rgb(255_255_255/0.18),0_6px_18px_-8px_rgb(var(--accent)/0.7)] hover:brightness-110 active:brightness-95',
-  secondary: 'glass text-fg hover:bg-fg/[0.08] active:bg-fg/[0.12]',
-  ghost: 'bg-transparent text-fg-muted hover:bg-fg/[0.07] hover:text-fg active:bg-fg/[0.1]',
-  danger: 'bg-danger/90 text-white shadow-[inset_0_1px_0_0_rgb(255_255_255/0.18)] hover:bg-danger active:brightness-95'
+  primary: 'btn btn-primary',
+  secondary: 'btn btn-secondary',
+  ghost: 'btn btn-ghost',
+  danger: 'btn btn-danger'
 }
 
 const SIZE: Record<ButtonSize, string> = {
-  sm: 'h-8 gap-1.5 rounded-lg px-3 text-[13px]',
+  sm: 'h-8 gap-1.5 rounded-[10px] px-3 text-[13px]',
   md: 'h-9 gap-2 rounded-xl px-4 text-sm',
-  lg: 'h-11 gap-2 rounded-xl px-5 text-[15px]'
+  lg: 'h-11 gap-2 rounded-[14px] px-5 text-[15px]'
 }
 
-const ICON_ONLY: Record<ButtonSize, string> = { sm: 'h-8 w-8 rounded-lg', md: 'h-9 w-9 rounded-xl', lg: 'h-11 w-11 rounded-xl' }
+const ICON_ONLY: Record<ButtonSize, string> = { sm: 'h-8 w-8 rounded-[10px]', md: 'h-9 w-9 rounded-xl', lg: 'h-11 w-11 rounded-[14px]' }
 const ICON_SIZE: Record<ButtonSize, number> = { sm: 15, md: 16, lg: 18 }
 
 /**
@@ -59,9 +65,9 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(funct
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cx(
-        'inline-flex select-none items-center justify-center whitespace-nowrap font-medium transition duration-150 ease-glass [&>svg]:shrink-0',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex select-none items-center justify-center whitespace-nowrap font-medium tracking-[-0.005em] [&>svg]:shrink-0',
+        // While busy it keeps its look (the spinner says why it can't be pressed); otherwise disabled dims it.
+        loading ? 'cursor-progress' : 'disabled:cursor-not-allowed disabled:opacity-50',
         VARIANT[variant],
         iconOnly ? ICON_ONLY[size] : SIZE[size],
         fullWidth && 'w-full',

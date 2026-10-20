@@ -109,7 +109,7 @@ export function Tabs({ tabs, value, onChange, label, variant = 'line', idBase, c
           role="tablist"
           aria-label={label}
           style={mask}
-          className={cx('scroll-strip flex gap-1', variant === 'line' ? 'hairline border-b' : 'glass-sunken inline-flex rounded-xl p-1')}
+          className={cx('scroll-strip flex gap-1', variant === 'line' ? 'hairline border-b' : 'glass-sunken inline-flex rounded-xl p-[3px]')}
         >
           {tabs.map((t, i) => {
             const selected = i === current
@@ -130,16 +130,16 @@ export function Tabs({ tabs, value, onChange, label, variant = 'line', idBase, c
                 onClick={() => onChange(t.id)}
                 onKeyDown={(e) => onKey(e, i)}
                 className={cx(
-                  'inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[13px] font-medium transition-colors',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus disabled:opacity-40',
+                  'inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-[13px] font-medium transition-colors duration-150',
+                  'focus-visible:outline-offset-1 disabled:cursor-not-allowed disabled:opacity-40',
                   variant === 'line'
-                    ? cx('-mb-px rounded-t-lg border-b-2 px-3 py-2.5', selected ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:text-fg')
-                    : cx('rounded-lg px-3 py-1.5', selected ? 'bg-surface-raised text-fg shadow-glass' : 'text-fg-muted hover:text-fg')
+                    ? cx('-mb-px rounded-t-lg border-b-2 px-3 py-2.5', selected ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:border-line/25 hover:text-fg')
+                    : cx('rounded-[9px] px-3 py-1.5', selected ? 'segment-on' : 'text-fg-muted hover:bg-fg/[0.05] hover:text-fg')
                 )}
               >
-                {Icon && <Icon size={15} aria-hidden strokeWidth={1.9} />}
+                {Icon && <Icon size={15} aria-hidden strokeWidth={1.9} className={selected ? 'text-accent-text' : undefined} />}
                 {t.label}
-                {t.badge !== undefined && <span className="text-xs text-fg-subtle">{t.badge}</span>}
+                {t.badge !== undefined && <span className="tabular rounded-full bg-fg/[0.07] px-1.5 text-[11px] leading-[18px] text-fg-muted">{t.badge}</span>}
               </button>
             )
           })}

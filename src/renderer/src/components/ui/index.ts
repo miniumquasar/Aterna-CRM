@@ -1,7 +1,8 @@
 /**
  * The glass design system. Screens use these and nothing else for surfaces
- * and controls, so the theme reaches everything. The design domain polishes
- * them without changing their props.
+ * and controls, so the theme reaches everything. Every one is shown in every
+ * state in the design gallery (screens/system/DesignGallery.tsx). Props only
+ * ever gain optional additions, so screens never break.
  */
 export { GlassPanel, GlassCard, type GlassPanelProps, type GlassCardProps, type GlassTone, type GlassPadding } from './GlassPanel'
 export { GlassButton, type GlassButtonProps, type ButtonVariant, type ButtonSize } from './GlassButton'
@@ -32,4 +33,8 @@ export { Avatar, type AvatarProps } from './Avatar'
 export { ProgressRing, type ProgressRingProps } from './ProgressRing'
 export { Kbd, type KbdProps } from './Kbd'
 export { VisuallyHidden } from './VisuallyHidden'
+export { Amount, type AmountProps } from './Amount'
+export { Reference, type ReferenceProps } from './Reference'
+export { Skeleton, type SkeletonProps } from './Skeleton'
+export { useSpecular } from './specular'
 export type { Tone } from './tones'

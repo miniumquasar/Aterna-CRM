@@ -169,7 +169,7 @@ function OpenDialog({
   return createPortal(
     <div
       className={cx(
-        'fixed inset-0 z-50 flex animate-fade-in justify-center overflow-y-auto bg-shadow/45 px-4 backdrop-blur-[2px]',
+        'dialog-scrim fixed inset-0 z-50 flex animate-fade-in justify-center overflow-y-auto px-4',
         placement === 'top' ? 'items-start pt-[12vh]' : 'items-center py-10'
       )}
       onMouseDown={onBackdrop}

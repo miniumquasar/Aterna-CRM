@@ -31,8 +31,8 @@ export function Avatar({ name, size = 'md', src, decorative = false, className }
   return (
     <span
       {...a11y}
-      className={cx('inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-semibold ring-1 ring-line/20', SIZE[size], className)}
-      style={{ backgroundColor: `rgb(var(--chart-${n}) / 0.22)`, color: `rgb(var(--text))` }}
+      className={cx('inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-semibold tracking-[0.02em] ring-1 ring-line/15', SIZE[size], className)}
+      style={{ backgroundImage: `linear-gradient(140deg, rgb(var(--chart-${n}) / 0.34), rgb(var(--chart-${n}) / 0.16))`, color: `rgb(var(--text))` }}
     >
       {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : initials(name)}
     </span>

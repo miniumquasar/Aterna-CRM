@@ -56,8 +56,8 @@ export function GlassModal({
   const descId = description ? `${id}-desc` : undefined
   const body = (
     <>
-      {children !== undefined && <div className="px-6 pb-2 text-sm text-fg-muted">{children}</div>}
-      {footer !== undefined && <div className="flex flex-wrap items-center justify-end gap-2 px-6 pb-6 pt-4">{footer}</div>}
+      {children !== undefined && <div className="px-6 pb-2 text-sm leading-6 text-fg-muted">{children}</div>}
+      {footer !== undefined && <div className="hairline mt-3 flex flex-wrap items-center justify-end gap-2 border-t px-6 pb-5 pt-4">{footer}</div>}
     </>
   )
   return (
@@ -69,15 +69,15 @@ export function GlassModal({
       role={role}
       initialFocus={initialFocus}
       closeOnBackdrop={closeOnBackdrop}
-      className={cx('glass-raised rounded-2xl', WIDTH[size])}
+      className={cx('glass-raised rounded-[22px]', WIDTH[size])}
     >
       <div className="flex items-start justify-between gap-4 px-6 pb-3 pt-6">
         <div className="min-w-0">
-          <h2 id={titleId} className="font-display text-lg font-semibold leading-7 text-fg">
+          <h2 id={titleId} className="text-lg font-semibold leading-7 tracking-[-0.01em] text-fg">
             {title}
           </h2>
           {description && (
-            <p id={descId} className="mt-1 text-sm text-fg-muted">
+            <p id={descId} className="mt-1 text-sm leading-6 text-fg-muted">
               {description}
             </p>
           )}
