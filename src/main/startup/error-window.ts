@@ -7,13 +7,22 @@ import { PRODUCT_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '@shared/product'
 
 const escape = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c)
 
-export function startupErrorHtml(message: string, logPath: string | null): string {
+export interface PlainPage {
+  /** The heading and the window title. */
+  title: string
+  message: string
+  /** The log that says more, or null when it couldn't be written. */
+  logPath: string | null
+}
+
+/** A page with no script: a heading, a plain message and where the log is. */
+export function plainPageHtml({ title, message, logPath }: PlainPage): string {
   const where = logPath
-    ? `<p>What happened is written in the start-up log:</p><p class="path">${escape(logPath)}</p>`
-    : '<p>The start-up log couldn’t be written, so the details are only in this message.</p>'
+    ? `<p>What happened is written in the log:</p><p class="path">${escape(logPath)}</p>`
+    : '<p>The log couldn’t be written, so the details are only in this message.</p>'
   return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
-<title>${escape(PRODUCT_NAME)} couldn’t start</title>
+<title>${escape(title)}</title>
 <style>
   :root { color-scheme: light dark; }
   body { margin: 0; font: 15px/1.55 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; background: #1a0610; color: #f6eef2; }
@@ -24,11 +33,15 @@ export function startupErrorHtml(message: string, logPath: string | null): strin
   .help { color: #cdb8c2; font-size: 13px; margin-top: 20px; }
 </style></head>
 <body><main>
-  <h1>${escape(PRODUCT_NAME)} couldn’t start</h1>
+  <h1>${escape(title)}</h1>
   <p>${escape(message)}</p>
   ${where}
   <p class="help">Close this window to quit. If you need help, contact ${escape(SUPPORT_EMAIL)} or ${escape(SUPPORT_PHONE)}.</p>
 </main></body></html>`
+}
+
+export function startupErrorHtml(message: string, logPath: string | null): string {
+  return plainPageHtml({ title: `${PRODUCT_NAME} couldn’t start`, message, logPath })
 }
 
 export async function showStartupError(message: string, logPath: string | null): Promise<void> {

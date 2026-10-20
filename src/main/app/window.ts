@@ -21,8 +21,10 @@ import { BrowserWindow, shell } from 'electron'
 import { pathToFileURL } from 'node:url'
 import { PRODUCT_NAME } from '@shared/product'
 import type { WindowColours } from '../preferences/appearance'
+import { plainPageHtml } from '../startup/error-window'
 import { isAllowedExternalUrl } from './external-links'
 import type { Logger } from './logger'
+import { dataPaths } from './paths'
 
 export const TITLE_BAR_HEIGHT = 40
 
@@ -37,10 +39,39 @@ export interface MainWindowOptions {
   log: Logger
   /** Called with the webContents id once the page has gone (its session ends). */
   onPageGone?: (webContentsId: number) => void
+  /** Called when the page's process stops unexpectedly (for the PC's crash reports). */
+  onPageCrashed?: (reason: string) => void
 }
 
 let mainWindow: BrowserWindow | null = null
-let appUrlPrefix: string | null = null
+
+/** The app's own page: the built index.html, or (run from source) the dev server's origin. */
+export type AppPage = { kind: 'file'; href: string } | { kind: 'origin'; origin: string }
+
+let appPage: AppPage | null = null
+
+export function appPageFor(o: { devServerUrl: string | null; rendererFile: string }): AppPage {
+  return o.devServerUrl ? { kind: 'origin', origin: new URL(o.devServerUrl).origin } : { kind: 'file', href: pathToFileURL(o.rendererFile).href }
+}
+
+/**
+ * True when `url` is the app's own page: exactly the built index.html with
+ * any #route or ?query (never a sibling file, nor a longer path that merely
+ * starts the same), or any page on the dev server's own origin.
+ */
+export function isUrlOfAppPage(url: string, page: AppPage | null): boolean {
+  if (!page) return false
+  let u: URL
+  try {
+    u = new URL(url)
+  } catch {
+    return false
+  }
+  if (page.kind === 'origin') return u.origin === page.origin
+  u.hash = ''
+  u.search = ''
+  return u.protocol === 'file:' && u.href === page.href
+}
 
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
@@ -48,7 +79,17 @@ export function getMainWindow(): BrowserWindow | null {
 
 /** True for a URL inside the app's own page (any route, since routes are #hashes). */
 export function isAppUrl(url: string): boolean {
-  return appUrlPrefix !== null && url.startsWith(appUrlPrefix)
+  return isUrlOfAppPage(url, appPage)
+}
+
+/** The page reloads after a crash; more than this many crashes in a minute and it stops trying. */
+const MAX_CRASHES_PER_MINUTE = 3
+
+/** Crash times within the last minute, newest last; true when the page may be reloaded once more. */
+export function mayReloadAfterCrash(crashes: number[], now: number): boolean {
+  while (crashes.length && now - crashes[0] > 60_000) crashes.shift()
+  crashes.push(now)
+  return crashes.length <= MAX_CRASHES_PER_MINUTE
 }
 
 function overlayFor(colours: WindowColours): Electron.TitleBarOverlayOptions {
@@ -64,7 +105,7 @@ export function openExternalIfAllowed(url: string, log: Logger): void {
 }
 
 export function createMainWindow(o: MainWindowOptions): BrowserWindow {
-  appUrlPrefix = o.devServerUrl ? `${new URL(o.devServerUrl).origin}/` : pathToFileURL(o.rendererFile).href
+  appPage = appPageFor(o)
   const mac = process.platform === 'darwin'
 
   const win = new BrowserWindow({
@@ -110,9 +151,28 @@ export function createMainWindow(o: MainWindowOptions): BrowserWindow {
     if (!isAppUrl(url)) event.preventDefault()
   })
   wc.on('will-attach-webview', (event) => event.preventDefault())
+  const crashes: number[] = []
   wc.on('render-process-gone', (_event, details) => {
-    o.log.error(`The page stopped (${details.reason}); reloading it.`)
-    if (!win.isDestroyed()) void loadPage(win, o)
+    o.onPageCrashed?.(details.reason)
+    if (win.isDestroyed()) return
+    if (mayReloadAfterCrash(crashes, Date.now())) {
+      o.log.error(`The page stopped (${details.reason}); reloading it.`)
+      void loadPage(win, o)
+      return
+    }
+    o.log.error(`The page stopped (${details.reason}) again; it has stopped ${crashes.length} times in a minute, so it isn’t reloaded.`)
+    let logPath: string | null = null
+    try {
+      logPath = dataPaths().appLog
+    } catch {
+      // Start-up always sets the data folder before the window exists.
+    }
+    const html = plainPageHtml({
+      title: `${PRODUCT_NAME} stopped`,
+      message: `${PRODUCT_NAME}’s window stopped working several times in a minute, so it hasn’t been reopened. Everything saved before then is safe. Close this window and start ${PRODUCT_NAME} again.`,
+      logPath
+    })
+    void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`).catch(() => undefined)
   })
   wc.on('destroyed', () => o.onPageGone?.(id))
   win.on('closed', () => {

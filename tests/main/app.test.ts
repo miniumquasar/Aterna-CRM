@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { isAllowedExternalUrl } from '@main/app/external-links'
 import { dataPathsFor, resolveDataRoot } from '@main/app/paths'
+import { appPageFor, isUrlOfAppPage, mayReloadAfterCrash } from '@main/app/window'
 import { startupErrorHtml } from '@main/startup/error-window'
 import { StartupFailure, StartupRunner } from '@main/startup/steps'
 import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 describe('external links', () => {
   it.each([
@@ -14,6 +16,8 @@ describe('external links', () => {
     ['https://bitopi.co.uk/', true],
     ['mailto:client@example.co.uk?subject=Accounts', true],
     ['https://wa.me/447555221010', true],
+    ['https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=x', true],
+    ['https://microsoftonline.com.evil.example/', false],
     ['http://www.gov.uk/', false],
     ['https://gov.uk.evil.example/', false],
     ['https://evilgov.uk/', false],
@@ -24,6 +28,42 @@ describe('external links', () => {
     ['not a url', false]
   ])('%s → %s', (url, allowed) => {
     expect(isAllowedExternalUrl(url)).toBe(allowed)
+  })
+})
+
+describe('the app’s own page', () => {
+  const page = resolve('/app/out/renderer/index.html')
+  const built = appPageFor({ devServerUrl: null, rendererFile: page })
+  const href = pathToFileURL(page).href
+
+  it.each([
+    ['index.html itself', href, true],
+    ['a route', `${href}#/clientFile?clientId=4`, true],
+    ['a query', `${href}?x=1`, true],
+    ['a longer name that starts the same', `${href}.evil.html`, false],
+    ['a sibling page', pathToFileURL(resolve('/app/out/renderer/other.html')).href, false],
+    ['a page in a folder below', pathToFileURL(resolve('/app/out/renderer/index.html/x.html')).href, false],
+    ['the same path over https', `https://app${new URL(href).pathname}`, false]
+  ])('built: %s', (_label, url, allowed) => {
+    expect(isUrlOfAppPage(url, built)).toBe(allowed)
+  })
+
+  it('accepts only the dev server’s own origin when run from source', () => {
+    const dev = appPageFor({ devServerUrl: 'http://localhost:5173/', rendererFile: '' })
+    expect(isUrlOfAppPage('http://localhost:5173/#/home', dev)).toBe(true)
+    expect(isUrlOfAppPage('http://localhost:5174/', dev)).toBe(false)
+    expect(isUrlOfAppPage('https://localhost:5173/', dev)).toBe(false)
+    expect(isUrlOfAppPage('not a url', dev)).toBe(false)
+    expect(isUrlOfAppPage('http://localhost:5173/', null)).toBe(false)
+  })
+
+  it('reloads after a crash, but not round and round', () => {
+    const crashes: number[] = []
+    expect([0, 1000, 2000].map((t) => mayReloadAfterCrash(crashes, t))).toEqual([true, true, true])
+    expect(mayReloadAfterCrash(crashes, 3000)).toBe(false)
+    expect(mayReloadAfterCrash([], 0)).toBe(true)
+    const old = [0, 1000, 2000]
+    expect(mayReloadAfterCrash(old, 70_000)).toBe(true)
   })
 })
 

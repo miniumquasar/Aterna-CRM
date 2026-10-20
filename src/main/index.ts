@@ -128,6 +128,10 @@ async function start(): Promise<void> {
     const deny = (_wc: unknown, permission: string): boolean => permission === 'clipboard-sanitized-write'
     session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => callback(deny(wc, permission)))
     session.defaultSession.setPermissionCheckHandler((wc, permission) => deny(wc, permission))
+    // UK English for the spelling checker (macOS uses its own, set in System Settings).
+    if (process.platform !== 'darwin' && session.defaultSession.availableSpellCheckerLanguages.includes('en-GB')) {
+      session.defaultSession.setSpellCheckerLanguages(['en-GB'])
+    }
     const win = createMainWindow({
       preloadPath: join(__dirname, '../preload/index.js'),
       devServerUrl: !app.isPackaged && process.env.ELECTRON_RENDERER_URL ? process.env.ELECTRON_RENDERER_URL : null,
@@ -154,8 +158,16 @@ async function start(): Promise<void> {
   runner.line('start-up finished')
 }
 
+// Every page the app ever makes (the main window, the start-up error window,
+// a hidden window that prints a PDF): no webviews, no pop-ups, and no
+// navigation away. The main window then sets its own, narrower rules
+// (in-app routes, allow-listed links opened in the OS).
 app.on('web-contents-created', (_event, contents) => {
   contents.on('will-attach-webview', (event) => event.preventDefault())
+  contents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  contents.on('will-navigate', (event) => {
+    if (getMainWindow()?.webContents !== contents) event.preventDefault()
+  })
 })
 
 app.on('window-all-closed', () => app.quit())
