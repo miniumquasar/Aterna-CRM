@@ -6,8 +6,13 @@
  * entry's hash and this entry's canonical content, so an entry changed,
  * removed or inserted outside the app (the table's triggers stop it from
  * inside) breaks the chain from that point, and verifyAuditChain() names it.
+ * The newest entry's id and hash are also kept in app_meta ('audit_head'),
+ * in the same transaction, and the next entry chains from there: so entries
+ * removed from the end, or added after it, outside the app are noticed too,
+ * and stay noticed after the app writes again.
  *
- * Values in fields named like secrets (password, token, secret) are never
+ * Values in fields named like secrets (password, passphrase, secret, token,
+ * NI number, authentication code, recovery words, backup codes) are never
  * written; sealed `*_enc` values are recorded only as a short fingerprint,
  * so a change still shows without the value.
  */
@@ -57,7 +62,8 @@ interface AuditRow {
   created_at: string
 }
 
-const SECRET_KEY = /(password|passphrase|secret|token)/i
+/** Field names whose values never go into the log (in any letter case, with or without underscores). */
+const SECRET_KEY = /(password|passphrase|secret|token|nino|ni_?number|auth_?code|recovery_?words|backup_?codes)/i
 
 function redact(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined || depth > 6) return value ?? null
@@ -65,11 +71,37 @@ function redact(value: unknown, depth = 0): unknown {
   if (typeof value !== 'object') return value
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-    if (SECRET_KEY.test(k)) out[k] = v === null || v === undefined ? null : '[not recorded]'
-    else if (k.endsWith('_enc') && typeof v === 'string' && v !== '') out[k] = `[sealed ${createHash('sha256').update(v).digest('hex').slice(0, 8)}]`
+    if (k.endsWith('_enc') && typeof v === 'string' && v !== '') out[k] = `[sealed ${createHash('sha256').update(v).digest('hex').slice(0, 8)}]`
+    else if (SECRET_KEY.test(k)) out[k] = v === null || v === undefined ? null : '[not recorded]'
     else out[k] = redact(v, depth + 1)
   }
   return out
+}
+
+/** Where the newest entry is kept, so the end of the chain can be checked too. */
+export const AUDIT_HEAD_KEY = 'audit_head'
+
+interface ChainHead {
+  id: number
+  hash: string
+}
+
+function readHead(db: Db): ChainHead | null {
+  const row = db.prepare('SELECT value FROM app_meta WHERE key = ?').get(AUDIT_HEAD_KEY) as { value: string } | undefined
+  if (!row) return null
+  try {
+    const v = JSON.parse(row.value) as Partial<ChainHead>
+    return typeof v.id === 'number' && Number.isInteger(v.id) && typeof v.hash === 'string' && /^[0-9a-f]{64}$/.test(v.hash) ? { id: v.id, hash: v.hash } : null
+  } catch {
+    return null
+  }
+}
+
+function writeHead(db: Db, head: ChainHead, at: string): void {
+  db.prepare(
+    `INSERT INTO app_meta (key, value, created_at, updated_at) VALUES (?, ?, ?, ?)
+     ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+  ).run(AUDIT_HEAD_KEY, JSON.stringify(head), at, at)
 }
 
 function toJson(value: unknown): string | null {
@@ -107,10 +139,12 @@ function isSystem(actor: Actor | SystemActor | null): actor is SystemActor | nul
 /** Adds one entry to the log and returns its id. Runs inside the caller's transaction (or its own). */
 export function recordChange(db: Db, actor: Actor | SystemActor | null, change: ChangeRecord, now: Date = new Date()): number {
   const write = (): number => {
-    const last = db.prepare('SELECT id, hash FROM audit_log ORDER BY id DESC LIMIT 1').get() as { id: number; hash: string } | undefined
+    const last = db.prepare('SELECT id, hash FROM audit_log ORDER BY id DESC LIMIT 1').get() as ChainHead | undefined
+    // Chain from the recorded head, so a tail removed (or rows added) outside the app stays visible; never reuse an id.
+    const head = readHead(db) ?? last ?? null
     const system = isSystem(actor)
     const row: Omit<AuditRow, 'hash'> = {
-      id: (last?.id ?? 0) + 1,
+      id: Math.max(head?.id ?? 0, last?.id ?? 0) + 1,
       actor_kind: system ? 'system' : 'user',
       actor_id: system ? null : actor.id,
       actor_name: system ? (actor?.name ?? SYSTEM_ACTOR.name) : actor.name,
@@ -121,7 +155,7 @@ export function recordChange(db: Db, actor: Actor | SystemActor | null, change: 
       summary: change.summary ?? null,
       before_json: toJson(change.before),
       after_json: toJson(change.after),
-      prev_hash: last?.hash ?? GENESIS_HASH,
+      prev_hash: head?.hash ?? GENESIS_HASH,
       created_at: now.toISOString()
     }
     const hash = entryHash(row)
@@ -131,6 +165,7 @@ export function recordChange(db: Db, actor: Actor | SystemActor | null, change: 
        VALUES (@id, @actor_kind, @actor_id, @actor_name, @action, @entity, @entity_id, @client_id, @summary,
          @before_json, @after_json, @prev_hash, @hash, @created_at)`
     ).run({ ...row, hash })
+    writeHead(db, { id: row.id, hash }, row.created_at)
     return row.id
   }
   return db.inTransaction ? write() : db.transaction(write)()
@@ -153,9 +188,16 @@ export type ChainCheck =
   | {
       ok: false
       entries: number
-      /** The first entry that doesn't fit the chain. */
+      /** The first entry that doesn't fit the chain (for entries removed from the end, the first one missing). */
       firstBadId: number
-      reason: 'changed' | 'missing_before' | 'reordered'
+      /**
+       * changed         an entry's content no longer matches its hash
+       * missing_before  entries before this one are gone
+       * reordered       this entry doesn't follow the one before it
+       * missing_at_end  the newest entries are gone
+       * added_outside   entries after the newest the app wrote
+       */
+      reason: 'changed' | 'missing_before' | 'reordered' | 'missing_at_end' | 'added_outside'
       message: string
     }
 
@@ -164,7 +206,11 @@ export function verifyAuditChain(db: Db): ChainCheck {
   let expectedPrev = GENESIS_HASH
   let expectedId = 1
   let entries = 0
+  const head = readHead(db)
   for (const r of db.prepare('SELECT * FROM audit_log ORDER BY id').iterate() as IterableIterator<AuditRow>) {
+    if (head && r.id > head.id) {
+      return { ok: false, entries: entries + 1, firstBadId: r.id, reason: 'added_outside', message: `Audit entry ${r.id} was added outside the app, after the newest entry the app wrote.` }
+    }
     entries += 1
     if (r.id !== expectedId) {
       return { ok: false, entries, firstBadId: r.id, reason: 'missing_before', message: `Entries ${expectedId} to ${r.id - 1} are missing from the audit log.` }
@@ -178,6 +224,21 @@ export function verifyAuditChain(db: Db): ChainCheck {
     }
     expectedPrev = hash
     expectedId += 1
+  }
+  if (head) {
+    const lastId = expectedId - 1
+    if (head.id > lastId) {
+      return {
+        ok: false,
+        entries,
+        firstBadId: lastId + 1,
+        reason: 'missing_at_end',
+        message: lastId + 1 === head.id ? `Audit entry ${head.id}, the newest, is missing from the audit log.` : `Entries ${lastId + 1} to ${head.id}, the newest, are missing from the audit log.`
+      }
+    }
+    if (head.hash !== expectedPrev) {
+      return { ok: false, entries, firstBadId: lastId, reason: 'changed', message: `Audit entry ${lastId} was changed outside the app.` }
+    }
   }
   return { ok: true, entries }
 }
